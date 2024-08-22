@@ -1,51 +1,174 @@
-### README.md
-
-# 📚 Student Payment Application
+# 📚 Payments Management Application
 
 Welcome to the Student Payment Application! This application enables efficient management of students and their payments.
 
-## 🌟 Features Overview
-- View list of students and their payments
-- Import student and payment lists
-- Retrieve student info by code
-- Filter students by study program
-- Filter payments by status or type
-- Retrieve payment by ID
-- Update payment status
-- Add new student payments
+# Student and Payment Management System
 
-## 🛠️ Backend Documentation
+This project is a Spring Boot application that provides APIs for managing students and payments within an educational institution. It supports operations such as retrieving, adding, updating, and deleting students and payments.
 
-### Endpoints
-Accessible via Swagger-UI:
-- **Students**
-  - `GET /students/all`: Retrieve all students
-  - `GET /students/{programId}`: Retrieve students by program
-  - `GET /students/{code}`: Retrieve student by code
-- **Payments**
-  - `GET /payments/all`: Retrieve all payments
-  - `GET /payments/status/{status}`: Retrieve payments by status
-  - `GET /payments/type/{type}`: Retrieve payments by type
-  - `GET /payment/{id}`: Retrieve payment by ID
-  - `GET /payments/student/{code}`: Retrieve payments by student code
-  - `PUT /payments/{id}`: Update payment status
-  - `POST /payments/new`: Add new payment
+## Features
 
-### Entities
-- **Student**: Attributes include ID, first name, last name, email, code, program ID
-- **Payment**: Attributes include ID, date, amount, type, status, receipt
+- **Student Management:**
+  - Get all students
+  - Get all admins
+  - Find students by program
+  - Find a student by their code or email
+  - Delete a user by email
+  - Add new students and admins
+  - Change and reset user passwords
 
-### Repositories
-- **StudentRepository**: Access student data
-- **PaymentRepository**: Access payment data
+- **Payment Management:**
+  - Get all payments
+  - Get payments by student code
+  - Get payment by ID
+  - Get payments by status or type
+  - Update payment status
+  - Add new payments with file upload
+  - Retrieve payment receipts
+  - Get payment status changes
 
-### Services
-- **StudentService**: Business logic for students
-- **PaymentService**: Business logic for payments
+## API Endpoints
 
-### Web Controllers
+### Student Management
+
+- **Get all students**
+  ```http
+  GET /student/all
+  ```
+
+- **Get all admins**
+  ```http
+  GET /admin/all
+  ```
+
+- **Find students by program**
+  ```http
+  GET /student/program/{programId}
+  ```
+
+- **Find student by code**
+  ```http
+  GET /student/code/{code}
+  ```
+
+- **Get student by email**
+  ```http
+  GET /student/email/{email}
+  ```
+
+- **Delete user by email**
+  ```http
+  DELETE /delete
+  ```
+
+- **Add new student**
+  ```http
+  POST /student/new
+  ```
+
+- **Add new admin**
+  ```http
+  POST /admin/new
+  ```
+
+- **Change user password**
+  ```http
+  PUT /change-pw
+  ```
+
+- **Reset user password**
+  ```http
+  PUT /{email}/reset-pw
+  ```
+
+### Payment Management
+
+- **Get all payments**
+  ```http
+  GET /all
+  ```
+
+- **Get all payments by student code**
+  ```http
+  GET /student/{code}
+  ```
+
+- **Get payment by ID**
+  ```http
+  GET /{id}
+  ```
+
+- **Get payments by status**
+  ```http
+  GET /status/{status}
+  ```
+
+- **Get payments by type**
+  ```http
+  GET /type/{type}
+  ```
+
+- **Update payment status**
+  ```http
+  PUT /{id}
+  ```
+
+- **Add new payment**
+  ```http
+  POST /new
+  ```
+
+- **Get payment receipt**
+  ```http
+  GET /receipt/{paymentId}
+  ```
+
+- **Get payment status changes**
+  ```http
+  GET /changes
+  ```
+
+## Dependencies
+
+- Spring Boot
+- Spring Security
+- JWT for authentication
+- ModelMapper
+- Multipart file handling
+
+## Web Controllers
 - **StudentRestController**: Handles student-related requests
 - **PaymentRestController**: Handles payment-related requests
+
+## Setup
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/Dev7HD/Back-End-Student-Payment-App
+   ```
+
+2. **Navigate to the project directory:**
+   ```bash
+   cd Back-End-Student-Payment-App
+   ```
+
+3. **Install dependencies:**
+   ```bash
+   ./mvnw install
+   ```
+
+4. **Run the application:**
+   ```bash
+   ./mvnw spring-boot:run
+   ```
+
+## Contributing
+
+Feel free to submit pull requests and report issues. For major changes, please open an issue first to discuss what you would like to change.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🤝 Contribution
 Contributions are welcome! Please submit a pull request or open an issue to discuss your changes.
