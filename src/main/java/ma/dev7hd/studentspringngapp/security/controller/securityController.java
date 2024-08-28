@@ -2,19 +2,16 @@ package ma.dev7hd.studentspringngapp.security.controller;
 
 import lombok.AllArgsConstructor;
 import ma.dev7hd.studentspringngapp.security.services.ISecurityService;
-import ma.dev7hd.studentspringngapp.security.services.SecurityService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @AllArgsConstructor
 @RequestMapping("/auth")
 public class securityController {
 
-    private ISecurityService securityService;
+    private final ISecurityService securityService;
 
     @GetMapping("/profile")
     public Authentication authenticate(Authentication authentication) {

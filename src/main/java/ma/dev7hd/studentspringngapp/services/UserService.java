@@ -9,8 +9,8 @@ import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfosStudentDTO;
 import ma.dev7hd.studentspringngapp.entities.User;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
 import ma.dev7hd.studentspringngapp.metier.IMetier;
-import ma.dev7hd.studentspringngapp.repositories.UserRepository;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,7 +21,6 @@ import java.util.List;
 @AllArgsConstructor
 public class UserService implements IUserService {
     private final IMetier iMetier;
-    private final UserRepository userRepository;
 
     @Override
     public ResponseEntity<User> deleteUserByEmail(String email) {
@@ -73,4 +72,9 @@ public class UserService implements IUserService {
         return iMetier.getStudentById(email);
     }
 
+    @Scheduled(fixedRate = 86400000)
+    @Override
+    public void emptyBlackListedTokens(){
+        iMetier.emptyBlacklistTokens();
+    }
 }

@@ -60,4 +60,6 @@ public interface IMetier {
     List<InfoStatusChangesDTO> getChanges();
 
     List<InfosAdminDTO> getAdmins();
+
+    void emptyBlacklistTokens();
 }

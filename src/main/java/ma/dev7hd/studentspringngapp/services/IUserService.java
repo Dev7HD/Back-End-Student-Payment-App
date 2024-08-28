@@ -8,6 +8,7 @@ import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfosStudentDTO;
 import ma.dev7hd.studentspringngapp.entities.User;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import java.util.List;
 
@@ -31,4 +32,7 @@ public interface IUserService {
     ResponseEntity<String> resetPW(String email);
 
     ResponseEntity<InfosStudentDTO> getStudentById(String email);
+
+    @Scheduled(fixedRate = 86400000)
+    void emptyBlackListedTokens();
 }

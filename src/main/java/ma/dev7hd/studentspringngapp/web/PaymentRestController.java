@@ -24,7 +24,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @RequestMapping("/payments")
 public class PaymentRestController {
-    private IPaymentService iPaymentService;
+    private final IPaymentService iPaymentService;
 
     /**
      * Get all payments

@@ -15,9 +15,11 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.time.LocalDate;
 
+@EnableScheduling
 @SpringBootApplication
 public class StudentSpringNgAppApplication {
 
@@ -30,7 +32,7 @@ public class StudentSpringNgAppApplication {
         return new ModelMapper();
     }
 
-    @Bean
+    //@Bean
     CommandLineRunner commandLineRunner(StudentRepository studentRepository, PaymentRepository paymentRepository, UserRepository userRepository) {
         return args -> {
             Student student1 = new Student();

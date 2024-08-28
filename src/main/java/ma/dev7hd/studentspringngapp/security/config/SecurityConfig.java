@@ -39,7 +39,7 @@ public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
     private final JwtBlacklistFilter jwtBlacklistFilter;
 
-    Dotenv dotenv = Dotenv.load();
+    private final Dotenv dotenv = Dotenv.load();
 
     private final String securityKey = dotenv.get("JWT_SECRET_KEY");
 

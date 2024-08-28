@@ -20,11 +20,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -33,7 +30,9 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -49,10 +48,13 @@ public class MetierImpl implements IMetier {
     private final AdminRepository adminRepository;
     private final PaymentRepository paymentRepository;
     private final PaymentStatusChangeRepository paymentStatusChangeRepository;
-    private ModelMapper modelMapper;
+    private final BlacklistedTokenRepository blacklistedTokenRepository;
+    private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
     private final ISecurityService securityService;
     private final UserTokensRepository userTokensRepository;
+
+    private static final Path PAYMENTS_FOLDER_PATH = Paths.get(System.getProperty("user.home"), "data", "payments");
 
     @Override
     public ResponseEntity<Payment> saveNewPayment(NewPaymentDTO newPaymentDTO,
@@ -61,75 +63,34 @@ public class MetierImpl implements IMetier {
             return ResponseEntity.badRequest().build();
         }
 
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        Optional<User> optionalUser = userRepository.findByEmail(userEmail);
+        // User who want to save the new payment
+        Optional<User> optionalLoggedInUser = getCurrentUser();
 
+        // Student who made the payment
         Optional<Student> optionalStudent = studentRepository.findStudentByCode(newPaymentDTO.getStudentCode());
 
-        if (optionalStudent.isPresent() && optionalUser.isPresent()) {
+        if (optionalStudent.isPresent() && optionalLoggedInUser.isPresent()) {
             Student student = optionalStudent.get();
-            User user = optionalUser.get();
-
-            Path folderPath = Paths.get(System.getProperty("user.home"), "data", "payments");
-            if (!Files.exists(folderPath)) {
-                Files.createDirectories(folderPath);
-            }
-            String fileName = UUID.randomUUID().toString();
-            Path filePath = Paths.get(folderPath.toString(), fileName + ".pdf");
-
-            try {
-                Files.copy(file.getInputStream(), filePath);
-            } catch (IOException e) {
+            User user = optionalLoggedInUser.get();
+            Path filePath = storePaymentReceipt(file);
+            if (filePath != null) {
+                Payment payment = buildPayment(newPaymentDTO, student, user, filePath.toString());
+                paymentRepository.save(payment);
+                return ResponseEntity.ok(payment);
+            } else {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
             }
-
-            Payment payment = Payment.builder()
-                    .amount(newPaymentDTO.getAmount())
-                    .student(student)
-                    .type(newPaymentDTO.getPaymentType())
-                    .date(newPaymentDTO.getDate())
-                    .status(PaymentStatus.CREATED)
-                    .receipt(filePath.toUri().toString())
-                    .addedBy(user)
-                    .build();
-            paymentRepository.save(payment);
-            return ResponseEntity.ok(payment);
         } else {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.badRequest().build();
         }
     }
 
     @Override
     public ResponseEntity<InfoPaymentDTO> updatePaymentStatus(UUID paymentId, PaymentStatus newStatus) {
         Optional<Payment> optionalPayment = paymentRepository.findById(paymentId);
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        Optional<User> optionalAdmin = userRepository.findByEmail(userEmail);
 
-        if (optionalPayment.isPresent() && optionalAdmin.isPresent()) {
-            Payment payment = optionalPayment.get();
-            User user = optionalAdmin.get();
-
-            if (user instanceof Admin admin) {
-                PaymentStatus oldStatus = payment.getStatus();
-
-                payment.setStatus(newStatus);
-
-                PaymentStatusChange changes = PaymentStatusChange.builder()
-                        .oldStatus(oldStatus)
-                        .newStatus(newStatus)
-                        .admin(admin)
-                        .payment(payment)
-                        .changeDate(LocalDateTime.now())
-                        .build();
-
-                paymentStatusChangeRepository.save(changes);
-                payment = paymentRepository.save(payment);
-
-                InfoPaymentDTO infoPaymentDTO = modelMapper.map(payment, InfoPaymentDTO.class);
-                return ResponseEntity.ok(infoPaymentDTO);
-            } else {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
+        if (optionalPayment.isPresent()) {
+           return processPaymentStatusUpdate(optionalPayment.get(),newStatus);
         } else {
             return ResponseEntity.notFound().build();
         }
@@ -256,7 +217,7 @@ public class MetierImpl implements IMetier {
         admin.setPassword(passwordEncoder.encode("123456"));
         admin.setPasswordChanged(false);
         userRepository.save(admin);
-        return ResponseEntity.accepted().body(newAdminDTO);
+        return ResponseEntity.ok().body(newAdminDTO);
     }
 
     @Override
@@ -265,51 +226,28 @@ public class MetierImpl implements IMetier {
         student.setPassword(passwordEncoder.encode("123456"));
         student.setPasswordChanged(false);
         userRepository.save(student);
-        return ResponseEntity.accepted().body(studentDTO);
+        return ResponseEntity.ok().body(studentDTO);
     }
 
     @Override
-    public ResponseEntity<String> changePW(@NotNull ChangePWDTO changePWDTO){
+    public ResponseEntity<String> changePW(@NotNull ChangePWDTO pwDTO){
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Optional<User> optionalUser = userRepository.findByEmail(userEmail);
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
-            if (passwordEncoder.matches(changePWDTO.getOldPassword(), user.getPassword())){
-                if(!Objects.equals(changePWDTO.getOldPassword(), changePWDTO.getNewPassword())){
-                    user.setPassword(passwordEncoder.encode(changePWDTO.getNewPassword()));
-                    user.setPasswordChanged(true);
-                    userRepository.save(user);
-                    String currentUserToken = getCurrentUserToken();
-                    securityService.logout(currentUserToken);
-                    System.out.println("token blacklisted after change password");
-                    return ResponseEntity.accepted().body("Password has been changed");
-                } else {
-                    return ResponseEntity.badRequest().body("The new password must be different from the old one.");
-                }
-
-            } else {
-                return ResponseEntity.badRequest().build();
-            }
+            return processPasswordChange(user, pwDTO);
         } else {
             return ResponseEntity.badRequest().build();
         }
     }
 
     @Override
-    public ResponseEntity<String> resetPW(String userEmail){
-        Optional<User> optionalUser = userRepository.findByEmail(userEmail);
-        if (optionalUser.isPresent()) {
-            User user = optionalUser.get();
-            user.setPassword(passwordEncoder.encode("123456"));
-            user.setPasswordChanged(false);
-            userRepository.save(user);
-            Optional<UserTokens> userToken = userTokensRepository.findById(userEmail);
-            if (userToken.isPresent()){
-                String token = userToken.get().getToken();
-                securityService.logout(token);
-                System.out.println("token blacklisted after reset password");
-            }
-            return ResponseEntity.accepted().body("Password has been reset");
+    public ResponseEntity<String> resetPW(String targetUserEmail){
+        Optional<User> optionalTargetUser = userRepository.findByEmail(targetUserEmail);
+        String loggedInUserEmail = getCurrentUserEmail();
+        if (optionalTargetUser.isPresent()) {
+            User targetUser = optionalTargetUser.get();
+            return processPasswordReset(targetUser, loggedInUserEmail);
         } else {
             return ResponseEntity.badRequest().build();
         }
@@ -325,6 +263,12 @@ public class MetierImpl implements IMetier {
     public List<InfosAdminDTO> getAdmins(){
         List<Admin> admins = adminRepository.findAll();
         return admins.stream().map(this::convertAdminToDto).toList();
+    }
+
+    @Override
+    public void emptyBlacklistTokens(){
+        Instant day = Instant.now().minus(24, ChronoUnit.HOURS);
+        blacklistedTokenRepository.deleteAllByBlacklistedAtLessThan(day);
     }
 
     //PRIVATE METHODS
@@ -353,13 +297,101 @@ public class MetierImpl implements IMetier {
         return modelMapper.map(admin, InfosAdminDTO.class);
     }
 
-    private String getCurrentUserToken() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication instanceof JwtAuthenticationToken) {
-            Jwt jwt = ((JwtAuthenticationToken) authentication).getToken();
-            return jwt.getTokenValue();
+    private ResponseEntity<String> processPasswordChange(User user, ChangePWDTO pwDTO) {
+        if (!passwordEncoder.matches(pwDTO.getOldPassword(), user.getPassword()) || pwDTO.getNewPassword().equals(pwDTO.getOldPassword())) {
+            return ResponseEntity.badRequest().body("The new password must be different from the current one/Current password is not correct. ");
         }
-        return null;
+        user.setPassword(passwordEncoder.encode(pwDTO.getNewPassword()));
+        user.setPasswordChanged(true);
+        userRepository.save(user);
+        oldTokensProcessing(null);
+        return ResponseEntity.ok("Password has been changed");
     }
+
+    private void oldTokensProcessing(String userEmail){
+        if(userEmail == null) {
+            userEmail = getCurrentUserEmail();
+        }
+        Optional<List<UserTokens>> optionalUserTokens = userTokensRepository.findByEmail(userEmail);
+        if (optionalUserTokens.isPresent()){
+            List<UserTokens> userTokens = optionalUserTokens.get();
+            userTokens.forEach(userToken -> {
+                String token = userToken.getToken();
+                securityService.logout(token);
+            });
+        }
+    }
+
+    private ResponseEntity<String> processPasswordReset(User targetUser, String loggedInUserEmail) {
+        if (!targetUser.getEmail().equals(loggedInUserEmail)) {
+            targetUser.setPassword(passwordEncoder.encode("123456"));
+            targetUser.setPasswordChanged(false);
+            userRepository.save(targetUser);
+            oldTokensProcessing(targetUser.getEmail());
+            return ResponseEntity.ok("Password has been reset");
+        }
+        return ResponseEntity.badRequest().body("You can't reset your own password! instead you can change it.");
+    }
+
+    private ResponseEntity<InfoPaymentDTO> processPaymentStatusUpdate(Payment payment, PaymentStatus newStatus) {
+        User user = getCurrentUser().orElse(null);
+
+        if (user instanceof Admin admin) {
+            PaymentStatus oldStatus = payment.getStatus();
+            payment.setStatus(newStatus);
+
+            PaymentStatusChange changes = PaymentStatusChange.builder()
+                    .oldStatus(oldStatus)
+                    .newStatus(newStatus)
+                    .admin(admin)
+                    .payment(payment)
+                    .changeDate(LocalDateTime.now())
+                    .build();
+
+            paymentStatusChangeRepository.save(changes);
+            paymentRepository.save(payment);
+
+            InfoPaymentDTO infoPaymentDTO = modelMapper.map(payment, InfoPaymentDTO.class);
+            return ResponseEntity.ok(infoPaymentDTO);
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+
+    private Payment buildPayment(NewPaymentDTO newPaymentDTO, Student student, User user, String receiptUri) {
+        return Payment.builder()
+                .amount(newPaymentDTO.getAmount())
+                .student(student)
+                .type(newPaymentDTO.getPaymentType())
+                .date(newPaymentDTO.getDate())
+                .status(PaymentStatus.CREATED)
+                .receipt(receiptUri)
+                .addedBy(user)
+                .build();
+    }
+
+    private Path storePaymentReceipt(MultipartFile file) throws IOException {
+        if (!Files.exists(PAYMENTS_FOLDER_PATH)) {
+            Files.createDirectories(PAYMENTS_FOLDER_PATH);
+        }
+        String fileName = UUID.randomUUID().toString();
+        Path filePath = PAYMENTS_FOLDER_PATH.resolve(fileName + ".pdf");
+
+        try {
+            Files.copy(file.getInputStream(), filePath);
+        } catch (IOException e) {
+            return null;
+        }
+        return filePath;
+    }
+
+    private Optional<User> getCurrentUser() {
+        String userEmail = getCurrentUserEmail();
+        return userRepository.findByEmail(userEmail);
+    }
+
+    private String getCurrentUserEmail() {
+        return SecurityContextHolder.getContext().getAuthentication().getName();
+    }
+
+
 }

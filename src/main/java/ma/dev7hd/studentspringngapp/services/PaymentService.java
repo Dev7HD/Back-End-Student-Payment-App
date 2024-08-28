@@ -21,7 +21,7 @@ import java.util.UUID;
 @Transactional
 @AllArgsConstructor
 public class PaymentService implements IPaymentService {
-    private IMetier iMetier;
+    private final IMetier iMetier;
 
     @Override
     public List<InfoPaymentDTO> getAllPayments() {

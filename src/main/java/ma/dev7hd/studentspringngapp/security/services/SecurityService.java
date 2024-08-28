@@ -17,7 +17,7 @@ import java.util.Map;
 @Transactional
 public class SecurityService implements ISecurityService {
 
-    private final JwtBlacklistService jwtBlacklistService;
+    private final IJwtBlacklistService jwtBlacklistService;
     private final UserTokensRepository tokensRepository;
     private final IJwtProvider jwtProvider;
 

@@ -36,7 +36,7 @@ public class JwtProvider implements IJwtProvider {
 
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuedAt(now)
-                .expiresAt(now.plus(100, ChronoUnit.MINUTES))
+                .expiresAt(now.plus(24, ChronoUnit.HOURS))
                 .subject(authentication.getName())
                 .claim("scope", scope)
                 .build();

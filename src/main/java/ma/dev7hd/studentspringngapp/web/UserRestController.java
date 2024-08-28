@@ -19,7 +19,7 @@ import java.util.List;
 @AllArgsConstructor
 @RequestMapping("/user")
 public class UserRestController {
-    private IUserService iUserService;
+    private final IUserService iUserService;
 
     /**
      * Get all students
