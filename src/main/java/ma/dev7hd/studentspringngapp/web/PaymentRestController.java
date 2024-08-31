@@ -86,7 +86,7 @@ public class PaymentRestController {
      * @param newStatus is the new status
      * @return Optional<Payment>
      */
-    @PutMapping("/{id}")
+    @PutMapping("/{id}/status-update")
     public ResponseEntity<InfoPaymentDTO> paymentStatusUpdate(@PathVariable UUID id, @RequestParam PaymentStatus newStatus) {
         return iPaymentService.paymentStatusUpdate(id,newStatus);
     }
