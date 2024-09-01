@@ -23,8 +23,8 @@ public class securityController {
         return securityService.login(username, password);
     }
 
-    /*@PostMapping("/logout")
+    @PostMapping("/logout")
     public void logout() {
         securityService.logout();
-    }*/
+    }
 }

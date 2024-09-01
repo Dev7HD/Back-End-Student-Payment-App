@@ -1,10 +1,13 @@
 package ma.dev7hd.studentspringngapp.security.services;
 
 import lombok.AllArgsConstructor;
+import ma.dev7hd.studentspringngapp.entities.UserTokens;
+import ma.dev7hd.studentspringngapp.repositories.UserTokensRepository;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwsHeader;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
@@ -14,7 +17,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
@@ -22,12 +27,20 @@ import java.util.stream.Collectors;
 public class JwtProvider implements IJwtProvider {
     private final AuthenticationManager authenticationManager;
     private final JwtEncoder jwtEncoder;
+    private final UserTokensRepository userTokensRepository;
 
     @Override
     public Map<String, String> getJWT(String username, String password) {
         Authentication authentication = authenticateUser(username, password);
         String jwt = generateToken(authentication);
         return Map.of("access_token", jwt);
+    }
+
+    @Override
+    public List<UserTokens> getUserTokens(){
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        Optional<List<UserTokens>> userTokens = userTokensRepository.findByEmail(userEmail);
+        return userTokens.orElse(null);
     }
 
     private String generateToken(Authentication authentication) {

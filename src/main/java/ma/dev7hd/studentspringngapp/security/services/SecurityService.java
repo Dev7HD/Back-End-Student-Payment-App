@@ -10,6 +10,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -38,7 +39,15 @@ public class SecurityService implements ISecurityService {
     }
 
     @Override
-    public void logout(String token) {
+    public void logoutByToken(String token) {
         jwtBlacklistService.blacklistToken(token);
+    }
+
+    @Override
+    public void logout() {
+        List<UserTokens> userTokens = jwtProvider.getUserTokens();
+        if(userTokens != null) {
+            userTokens.forEach(userToken -> jwtBlacklistService.blacklistToken(userToken.getToken()));
+        }
     }
 }

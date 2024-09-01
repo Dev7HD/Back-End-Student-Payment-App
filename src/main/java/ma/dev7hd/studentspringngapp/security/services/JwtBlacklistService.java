@@ -36,5 +36,4 @@ public class JwtBlacklistService implements IJwtBlacklistService {
     public void removeTokenFromBlacklist(String token) {
         blacklistedTokenRepository.deleteById(token);
     }
-
 }

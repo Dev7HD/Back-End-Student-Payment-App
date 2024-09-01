@@ -1,10 +1,12 @@
 package ma.dev7hd.studentspringngapp.security.services;
 
-import org.springframework.security.core.Authentication;
+import ma.dev7hd.studentspringngapp.entities.UserTokens;
 
+import java.util.List;
 import java.util.Map;
 
 public interface IJwtProvider {
     Map<String, String> getJWT(String username, String password);
 
+    List<UserTokens> getUserTokens();
 }
