@@ -6,6 +6,7 @@ import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewAdminDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewPendingStudentDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewStudentDTO;
 import ma.dev7hd.studentspringngapp.dtos.otherDTOs.ChangePWDTO;
+import ma.dev7hd.studentspringngapp.entities.PendingStudent;
 import ma.dev7hd.studentspringngapp.entities.User;
 import ma.dev7hd.studentspringngapp.enumirat.DepartmentName;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
@@ -43,4 +44,10 @@ public interface IUserMetier {
     ResponseEntity<String> registerStudent(NewPendingStudentDTO pendingStudentDTO);
 
     ResponseEntity<?> approvingStudentRegistration(@NotNull String email);
+
+    ResponseEntity<String> declineStudentRegistration(@NotNull String email);
+
+    ResponseEntity<String> banStudentRegistration(@NotNull String email);
+
+    List<PendingStudent> getPendingStudents();
 }

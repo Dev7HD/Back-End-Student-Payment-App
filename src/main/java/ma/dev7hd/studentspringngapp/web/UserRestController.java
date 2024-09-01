@@ -7,10 +7,12 @@ import ma.dev7hd.studentspringngapp.dtos.otherDTOs.ChangePWDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewAdminDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewStudentDTO;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfosStudentDTO;
+import ma.dev7hd.studentspringngapp.entities.PendingStudent;
 import ma.dev7hd.studentspringngapp.entities.User;
 import ma.dev7hd.studentspringngapp.enumirat.DepartmentName;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
 import ma.dev7hd.studentspringngapp.services.IUserService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -125,6 +127,16 @@ public class UserRestController {
         return iUserService.resetPW(email);
     }
 
+    /**
+     * Get all admins with backend pagination and multi-criteria filtering
+     * @param email
+     * @param firstName
+     * @param lastName
+     * @param departmentName
+     * @param page
+     * @param size
+     * @return Page<InfosAdminDTO>
+     */
     @GetMapping("/admin")
     public Page<InfosAdminDTO> getAdminsByCriteria(@RequestParam(defaultValue = "") String email,
                                            @RequestParam(defaultValue = "") String firstName,
@@ -135,6 +147,17 @@ public class UserRestController {
         return iUserService.getAdminsByCriteria(email, firstName, lastName, departmentName, page, size);
     }
 
+    /**
+     * Get all students with backend pagination and multi-criteria filtering
+     * @param email
+     * @param firstName
+     * @param lastName
+     * @param programID
+     * @param code
+     * @param page
+     * @param size
+     * @return Page<InfosStudentDTO>
+     */
     @GetMapping("/student")
     public Page<InfosStudentDTO> getStudentsByCriteria(@RequestParam(defaultValue = "") String email,
                                                    @RequestParam(defaultValue = "") String firstName,
@@ -146,6 +169,11 @@ public class UserRestController {
         return iUserService.getStudentsByCriteria(email, firstName, lastName, programID, code, page, size);
     }
 
+    /**
+     * Register new student that stays in pending list until be approved or declined
+     * @param pendingStudentDTO the new student information
+     * @return ResponseEntity<String>
+     */
     @PostMapping("/register")
     public ResponseEntity<String> registerStudent(@RequestBody NewPendingStudentDTO pendingStudentDTO){
         return iUserService.registerStudent(pendingStudentDTO);
@@ -155,4 +183,20 @@ public class UserRestController {
     public ResponseEntity<?> approvingStudentRegistration(String email){
         return iUserService.approvingStudentRegistration(email);
     }
+
+    @PostMapping("/decline")
+    public ResponseEntity<String> declineStudentRegistration(String email){
+        return iUserService.declineStudentRegistration(email);
+    }
+
+    @PostMapping("/ban")
+    public ResponseEntity<String> banStudentRegistration(String email){
+        return iUserService.banStudentRegistration(email);
+    }
+
+    @GetMapping("/pending-students")
+    public List<PendingStudent> getPendingStudents(){
+        return iUserService.getPendingStudent();
+    }
+
 }

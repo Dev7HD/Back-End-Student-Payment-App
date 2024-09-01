@@ -21,4 +21,8 @@ public class Admin extends User {
     @OneToMany(mappedBy = "admin", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private List<PaymentStatusChange> paymentStatusChanges;
+
+    @OneToMany(mappedBy = "adminBanner", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private List<BanedRegistration> banedRegistrations;
 }

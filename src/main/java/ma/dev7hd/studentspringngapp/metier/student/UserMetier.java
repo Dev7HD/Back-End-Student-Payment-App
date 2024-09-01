@@ -40,6 +40,7 @@ public class UserMetier implements IUserMetier {
     private final AdminRepository adminRepository;
     private final ModelMapper modelMapper;
     private final PendingStudentRepository pendingStudentRepository;
+    private final BanedRegistrationRepository banedRegistrationRepository;
 
     @Override
     public ResponseEntity<User> deleteUser(String email) {
@@ -162,8 +163,9 @@ public class UserMetier implements IUserMetier {
     public ResponseEntity<String> registerStudent(@NotNull NewPendingStudentDTO pendingStudentDTO){
         Optional<User> optionalUser = userRepository.findById(pendingStudentDTO.getEmail());
         Optional<Student> optionalStudent = studentRepository.findStudentByCode(pendingStudentDTO.getCode());
-        if (optionalUser.isPresent() || optionalStudent.isPresent()) {
-            return ResponseEntity.badRequest().body("Email or Code already in use");
+        Optional<BanedRegistration> optionalBanedRegistration = banedRegistrationRepository.findById(pendingStudentDTO.getEmail());
+        if (optionalUser.isPresent() || optionalStudent.isPresent() || optionalBanedRegistration.isPresent()) {
+            return ResponseEntity.badRequest().body("Email or Code already in use or banned");
         }
         PendingStudent pendingStudent = convertPendingStudentToDto(pendingStudentDTO);
         pendingStudent.setRegisterDate(Instant.now());
@@ -187,10 +189,46 @@ public class UserMetier implements IUserMetier {
         }
     }
 
+    @Override
+    public ResponseEntity<String> declineStudentRegistration(@NotNull String email){
+        Optional<PendingStudent> optionalPendingStudent = pendingStudentRepository.findById(email);
+        if (optionalPendingStudent.isPresent()) {
+            PendingStudent pendingStudent = optionalPendingStudent.get();
+            pendingStudentRepository.delete(pendingStudent);
+            return ResponseEntity.ok().body("The registration was declined successfully.");
+        }
+        return ResponseEntity.badRequest().body("Email is not correct.");
+    }
+
+    @Override
+    public ResponseEntity<String> banStudentRegistration(@NotNull String email){
+        Optional<PendingStudent> optionalPendingStudent = pendingStudentRepository.findById(email);
+        if (optionalPendingStudent.isPresent()) {
+            PendingStudent pendingStudent = optionalPendingStudent.get();
+            BanedRegistration banedRegistration = convertPendingStudentToBanedRegistration(pendingStudent);
+            banedRegistration.setBanDate(Instant.now());
+            Optional<Admin> admin = adminRepository.findById(getCurrentUserEmail());
+            admin.ifPresent(banedRegistration::setAdminBanner);
+            banedRegistrationRepository.save(banedRegistration);
+            pendingStudentRepository.delete(pendingStudent);
+            return ResponseEntity.ok().body("The registration was banned successfully.");
+        }
+        return ResponseEntity.badRequest().body("Email is not correct.");
+    }
+
+    @Override
+    public List<PendingStudent> getPendingStudents(){
+        return pendingStudentRepository.findAll();
+    }
+
     //PRIVATE METHODS
 
     private Page<InfosAdminDTO> convertPageableAdminToDTO(Page<Admin> admins){
         return admins.map(admin -> modelMapper.map(admin, InfosAdminDTO.class));
+    }
+
+    private BanedRegistration convertPendingStudentToBanedRegistration(PendingStudent pendingStudent){
+        return modelMapper.map(pendingStudent, BanedRegistration.class);
     }
 
     private PendingStudent convertPendingStudentToDto(NewPendingStudentDTO pendingStudentDTO) {

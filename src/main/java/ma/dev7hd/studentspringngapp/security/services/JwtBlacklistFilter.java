@@ -40,6 +40,12 @@ public class JwtBlacklistFilter extends OncePerRequestFilter {
             return;
         }
 
+        String path = request.getRequestURI();
+        if ("/user/register".equals(path)) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         if (jwtBlacklistService.isTokenBlacklisted(token)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("Token is blacklisted");

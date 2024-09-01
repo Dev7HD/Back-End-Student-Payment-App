@@ -124,6 +124,17 @@ public class PaymentRestController {
         return iPaymentService.getPaymentStatusChanges();
     }
 
+    /**
+     * Get all payments with backend pagination and multi-criteria filtering
+     * @param paymentType PaymentType
+     * @param paymentStatus PaymentStatus
+     * @param code String
+     * @param min int
+     * @param max int
+     * @param page default 0
+     * @param size default 10
+     * @return Page<InfoPaymentDTO>
+     */
     @GetMapping("/filter")
     public Page<InfoPaymentDTO> getPaymentsByTypeAndStatus(@RequestParam(name = "type", defaultValue = "") PaymentType paymentType,
                                                            @RequestParam(name = "status", defaultValue = "") PaymentStatus paymentStatus,

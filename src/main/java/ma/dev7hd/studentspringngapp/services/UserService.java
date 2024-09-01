@@ -7,6 +7,7 @@ import ma.dev7hd.studentspringngapp.dtos.otherDTOs.ChangePWDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewAdminDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewStudentDTO;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfosStudentDTO;
+import ma.dev7hd.studentspringngapp.entities.PendingStudent;
 import ma.dev7hd.studentspringngapp.entities.User;
 import ma.dev7hd.studentspringngapp.enumirat.DepartmentName;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
@@ -93,5 +94,20 @@ public class UserService implements IUserService {
     @Override
     public ResponseEntity<?> approvingStudentRegistration(@NotNull String email){
         return userMetier.approvingStudentRegistration(email);
+    }
+
+    @Override
+    public ResponseEntity<String> declineStudentRegistration(@NotNull String email){
+        return userMetier.declineStudentRegistration(email);
+    }
+
+    @Override
+    public ResponseEntity<String> banStudentRegistration(@NotNull String email){
+        return userMetier.banStudentRegistration(email);
+    }
+
+    @Override
+    public List<PendingStudent> getPendingStudent(){
+        return userMetier.getPendingStudents();
     }
 }
