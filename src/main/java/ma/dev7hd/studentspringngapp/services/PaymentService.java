@@ -7,7 +7,7 @@ import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfoPaymentDTO;
 import ma.dev7hd.studentspringngapp.entities.Payment;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentStatus;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentType;
-import ma.dev7hd.studentspringngapp.metier.IMetier;
+import ma.dev7hd.studentspringngapp.metier.payment.IPaymentMetier;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -22,42 +22,42 @@ import java.util.UUID;
 @Transactional
 @AllArgsConstructor
 public class PaymentService implements IPaymentService {
-    private final IMetier iMetier;
+    private final IPaymentMetier paymentMetier;
 
     @Override
     public List<InfoPaymentDTO> getAllPayments() {
-        return iMetier.findAllPayments();
+        return paymentMetier.findAllPayments();
     }
 
     @Override
     public List<InfoPaymentDTO> getPaymentsByStatus(PaymentStatus status) {
-        return iMetier.getPaymentsByStatus(status);
+        return paymentMetier.getPaymentsByStatus(status);
     }
 
     @Override
     public ResponseEntity<Payment> newPayment(NewPaymentDTO newPaymentDTO,
                                               MultipartFile file) throws IOException {
-        return iMetier.saveNewPayment(newPaymentDTO, file);
+        return paymentMetier.saveNewPayment(newPaymentDTO, file);
     }
 
     @Override
     public ResponseEntity<InfoPaymentDTO> paymentStatusUpdate(UUID id, PaymentStatus newStatus) {
-        return iMetier.updatePaymentStatus(id, newStatus);
+        return paymentMetier.updatePaymentStatus(id, newStatus);
     }
 
     @Override
     public byte[] getPaymentFile(UUID paymentId) throws IOException {
-        return iMetier.getReceipt(paymentId);
+        return paymentMetier.getReceipt(paymentId);
     }
 
     @Override
     public List<InfoPaymentDTO> getPaymentsByType(PaymentType type) {
-        return iMetier.getPaymentsByType(type);
+        return paymentMetier.getPaymentsByType(type);
     }
 
     @Override
     public ResponseEntity<InfoPaymentDTO> getPaymentById(UUID paymentId) {
-        InfoPaymentDTO payment = iMetier.getPaymentById(paymentId);
+        InfoPaymentDTO payment = paymentMetier.getPaymentById(paymentId);
         if (payment == null) {
             return ResponseEntity.notFound().build();
         } else {
@@ -67,17 +67,17 @@ public class PaymentService implements IPaymentService {
 
     @Override
     public ResponseEntity<List<InfoPaymentDTO>> getStudentPayments(String studentCode) {
-        return iMetier.getStudentPayments(studentCode);
+        return paymentMetier.getStudentPayments(studentCode);
     }
 
     @Override
     public List<InfoStatusChangesDTO> getPaymentStatusChanges(){
-        return iMetier.getChanges();
+        return paymentMetier.getChanges();
     }
 
     @Override
     public Page<InfoPaymentDTO> getPaymentsByCriteria(String code, Double min, Double max, PaymentStatus status, PaymentType type, int page, int size) {
-        return iMetier.getPaymentsByCriteria(code, min, max, status, type, page, size);
+        return paymentMetier.getPaymentsByCriteria(code, min, max, status, type, page, size);
     }
 
 }

@@ -2,6 +2,7 @@ package ma.dev7hd.studentspringngapp.services;
 
 import lombok.AllArgsConstructor;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfosAdminDTO;
+import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewPendingStudentDTO;
 import ma.dev7hd.studentspringngapp.dtos.otherDTOs.ChangePWDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewAdminDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewStudentDTO;
@@ -9,10 +10,10 @@ import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfosStudentDTO;
 import ma.dev7hd.studentspringngapp.entities.User;
 import ma.dev7hd.studentspringngapp.enumirat.DepartmentName;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
-import ma.dev7hd.studentspringngapp.metier.IMetier;
+import ma.dev7hd.studentspringngapp.metier.student.IUserMetier;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,71 +23,75 @@ import java.util.List;
 @Transactional
 @AllArgsConstructor
 public class UserService implements IUserService {
-    private final IMetier iMetier;
+    private final IUserMetier userMetier;
 
     @Override
     public ResponseEntity<User> deleteUserByEmail(String email) {
-        return iMetier.deleteUser(email);
+        return userMetier.deleteUser(email);
     }
 
     @Override
     public List<InfosStudentDTO> getAllStudents() {
-        return iMetier.getAllStudents();
+        return userMetier.getAllStudents();
     }
 
     @Override
     public List<InfosStudentDTO> getStudentByProgram(ProgramID programID){
-        return iMetier.getStudentByProgram(programID);
+        return userMetier.getStudentByProgram(programID);
     }
 
     @Override
     public ResponseEntity<InfosStudentDTO> getStudentByCode(String code){
-        return iMetier.getStudentByCode(code);
+        return userMetier.getStudentByCode(code);
     }
 
     @Override
     public ResponseEntity<NewAdminDTO> addAdmin(NewAdminDTO adminDTO) {
-        return iMetier.saveAdmin(adminDTO);
+        return userMetier.saveAdmin(adminDTO);
     }
 
     @Override
     public ResponseEntity<NewStudentDTO> addStudent(NewStudentDTO studentDTO) {
-        return iMetier.saveStudent(studentDTO);
+        return userMetier.saveStudent(studentDTO);
     }
 
     @Override
     public ResponseEntity<String> changePassword(ChangePWDTO changePWDTO) {
-        return iMetier.changePW(changePWDTO);
+        return userMetier.changePW(changePWDTO);
     }
 
     @Override
     public List<InfosAdminDTO> getAllAdmins() {
-        return iMetier.getAdmins();
+        return userMetier.getAdmins();
     }
 
     @Override
     public ResponseEntity<String> resetPW(String email){
-        return iMetier.resetPW(email);
+        return userMetier.resetPW(email);
     }
 
     @Override
     public ResponseEntity<InfosStudentDTO> getStudentById(String email) {
-        return iMetier.getStudentById(email);
+        return userMetier.getStudentById(email);
     }
 
     @Override
     public Page<InfosAdminDTO> getAdminsByCriteria(String email, String firstName, String lastName, DepartmentName departmentName, int page, int size){
-        return iMetier.getAdminsByCriteria(email, firstName, lastName, departmentName, page, size);
+        return userMetier.getAdminsByCriteria(email, firstName, lastName, departmentName, page, size);
     }
 
     @Override
     public Page<InfosStudentDTO> getStudentsByCriteria(String email, String firstName, String lastName, ProgramID programID, String code, int page, int size){
-        return iMetier.getStudentsByCriteria(email, firstName, lastName, programID, code, page, size);
+        return userMetier.getStudentsByCriteria(email, firstName, lastName, programID, code, page, size);
     }
 
-    @Scheduled(fixedRate = 86400000)
     @Override
-    public void emptyBlackListedTokens(){
-        iMetier.emptyBlacklistTokens();
+    public ResponseEntity<String> registerStudent(@NotNull NewPendingStudentDTO pendingStudentDTO){
+        return userMetier.registerStudent(pendingStudentDTO);
+    }
+
+    @Override
+    public ResponseEntity<?> approvingStudentRegistration(@NotNull String email){
+        return userMetier.approvingStudentRegistration(email);
     }
 }

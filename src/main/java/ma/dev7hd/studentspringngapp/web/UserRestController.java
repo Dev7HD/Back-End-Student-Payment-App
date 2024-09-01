@@ -2,6 +2,7 @@ package ma.dev7hd.studentspringngapp.web;
 
 import lombok.AllArgsConstructor;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfosAdminDTO;
+import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewPendingStudentDTO;
 import ma.dev7hd.studentspringngapp.dtos.otherDTOs.ChangePWDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewAdminDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewStudentDTO;
@@ -143,5 +144,15 @@ public class UserRestController {
                                                    @RequestParam(defaultValue = "0")int page,
                                                    @RequestParam(defaultValue = "10")int size){
         return iUserService.getStudentsByCriteria(email, firstName, lastName, programID, code, page, size);
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<String> registerStudent(@RequestBody NewPendingStudentDTO pendingStudentDTO){
+        return iUserService.registerStudent(pendingStudentDTO);
+    }
+
+    @PostMapping("/approve")
+    public ResponseEntity<?> approvingStudentRegistration(String email){
+        return iUserService.approvingStudentRegistration(email);
     }
 }

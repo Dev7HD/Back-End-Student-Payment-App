@@ -4,9 +4,11 @@ import lombok.AllArgsConstructor;
 import ma.dev7hd.studentspringngapp.entities.BlacklistedToken;
 import ma.dev7hd.studentspringngapp.repositories.BlacklistedTokenRepository;
 import ma.dev7hd.studentspringngapp.repositories.UserTokensRepository;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 @Service
 @AllArgsConstructor
@@ -35,5 +37,12 @@ public class JwtBlacklistService implements IJwtBlacklistService {
     @Override
     public void removeTokenFromBlacklist(String token) {
         blacklistedTokenRepository.deleteById(token);
+    }
+
+    @Scheduled(fixedRate = 86400000)
+    @Override
+    public void emptyBlacklistTokens(){
+        Instant day = Instant.now().minus(24, ChronoUnit.HOURS);
+        blacklistedTokenRepository.deleteAllByBlacklistedAtLessThan(day);
     }
 }

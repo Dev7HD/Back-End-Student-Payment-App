@@ -1,11 +1,11 @@
-package ma.dev7hd.studentspringngapp.services;
+package ma.dev7hd.studentspringngapp.metier.student;
 
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfosAdminDTO;
-import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewPendingStudentDTO;
-import ma.dev7hd.studentspringngapp.dtos.otherDTOs.ChangePWDTO;
-import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewAdminDTO;
-import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewStudentDTO;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfosStudentDTO;
+import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewAdminDTO;
+import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewPendingStudentDTO;
+import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewStudentDTO;
+import ma.dev7hd.studentspringngapp.dtos.otherDTOs.ChangePWDTO;
 import ma.dev7hd.studentspringngapp.entities.User;
 import ma.dev7hd.studentspringngapp.enumirat.DepartmentName;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
@@ -15,32 +15,32 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
-public interface IUserService {
-    ResponseEntity<User> deleteUserByEmail(String email);
+public interface IUserMetier {
+    ResponseEntity<User> deleteUser(String email);
 
     List<InfosStudentDTO> getAllStudents();
 
-    List<InfosStudentDTO> getStudentByProgram(ProgramID programID);
-
     ResponseEntity<InfosStudentDTO> getStudentByCode(String code);
 
-    ResponseEntity<NewAdminDTO> addAdmin(NewAdminDTO adminDTO);
-
-    ResponseEntity<NewStudentDTO> addStudent(NewStudentDTO studentDTO);
-
-    ResponseEntity<String> changePassword(ChangePWDTO changePWDTO);
-
-    List<InfosAdminDTO> getAllAdmins();
-
-    ResponseEntity<String> resetPW(String email);
-
     ResponseEntity<InfosStudentDTO> getStudentById(String email);
+
+    List<InfosStudentDTO> getStudentByProgram(ProgramID programID);
+
+    ResponseEntity<NewAdminDTO> saveAdmin(@NotNull NewAdminDTO newAdminDTO);
+
+    ResponseEntity<NewStudentDTO> saveStudent(@NotNull NewStudentDTO studentDTO);
+
+    ResponseEntity<String> changePW(@NotNull ChangePWDTO pwDTO);
+
+    ResponseEntity<String> resetPW(String targetUserEmail);
+
+    List<InfosAdminDTO> getAdmins();
 
     Page<InfosAdminDTO> getAdminsByCriteria(String email, String firstName, String lastName, DepartmentName departmentName, int page, int size);
 
     Page<InfosStudentDTO> getStudentsByCriteria(String email, String firstName, String lastName, ProgramID programID, String code, int page, int size);
 
-    ResponseEntity<String> registerStudent(@NotNull NewPendingStudentDTO pendingStudentDTO);
+    ResponseEntity<String> registerStudent(NewPendingStudentDTO pendingStudentDTO);
 
     ResponseEntity<?> approvingStudentRegistration(@NotNull String email);
 }

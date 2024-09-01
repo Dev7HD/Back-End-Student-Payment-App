@@ -13,7 +13,7 @@ import java.util.Optional;
 
 public interface StudentRepository extends JpaRepository<Student,String> {
     List<Student> findStudentByProgramId(ProgramID programId);
-    Optional<Student> findStudentByCode(String studentId);
+    Optional<Student> findStudentByCode(String code);
     @Query("SELECT s FROM Student s WHERE " +
             "(:email IS NULL OR s.email LIKE %:email%) AND " +
             "(:firstName IS NULL OR s.firstName LIKE %:firstName%) AND " +
