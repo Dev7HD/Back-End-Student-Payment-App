@@ -9,6 +9,7 @@ import ma.dev7hd.studentspringngapp.entities.Payment;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentStatus;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentType;
 import ma.dev7hd.studentspringngapp.services.IPaymentService;
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 //import org.springframework.security.access.prepost.PreAuthorize;
@@ -121,5 +122,16 @@ public class PaymentRestController {
     @GetMapping("/changes")
     public List<InfoStatusChangesDTO> changes() {
         return iPaymentService.getPaymentStatusChanges();
+    }
+
+    @GetMapping("/filter")
+    public Page<InfoPaymentDTO> getPaymentsByTypeAndStatus(@RequestParam(name = "type", defaultValue = "") PaymentType paymentType,
+                                                           @RequestParam(name = "status", defaultValue = "") PaymentStatus paymentStatus,
+                                                           @RequestParam(defaultValue = "") String code,
+                                                           @RequestParam(defaultValue = "") Double min,
+                                                           @RequestParam(defaultValue = "") Double max,
+                                                           @RequestParam(defaultValue = "0") int page,
+                                                           @RequestParam(defaultValue = "10") int size) {
+        return iPaymentService.getPaymentsByCriteria(code, min, max, paymentStatus, paymentType, page, size);
     }
 }

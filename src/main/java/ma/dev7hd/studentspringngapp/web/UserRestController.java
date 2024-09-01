@@ -7,8 +7,10 @@ import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewAdminDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewStudentDTO;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfosStudentDTO;
 import ma.dev7hd.studentspringngapp.entities.User;
+import ma.dev7hd.studentspringngapp.enumirat.DepartmentName;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
 import ma.dev7hd.studentspringngapp.services.IUserService;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -120,5 +122,26 @@ public class UserRestController {
     @PutMapping("/{email}/reset-pw")
     public ResponseEntity<String> resetPassword(@PathVariable String email) {
         return iUserService.resetPW(email);
+    }
+
+    @GetMapping("/admin")
+    public Page<InfosAdminDTO> getAdminsByCriteria(@RequestParam(defaultValue = "") String email,
+                                           @RequestParam(defaultValue = "") String firstName,
+                                           @RequestParam(defaultValue = "") String lastName,
+                                           @RequestParam(defaultValue = "") DepartmentName departmentName,
+                                           @RequestParam(defaultValue = "0")int page,
+                                           @RequestParam(defaultValue = "10")int size){
+        return iUserService.getAdminsByCriteria(email, firstName, lastName, departmentName, page, size);
+    }
+
+    @GetMapping("/student")
+    public Page<InfosStudentDTO> getStudentsByCriteria(@RequestParam(defaultValue = "") String email,
+                                                   @RequestParam(defaultValue = "") String firstName,
+                                                   @RequestParam(defaultValue = "") String lastName,
+                                                   @RequestParam(defaultValue = "") ProgramID programID,
+                                                   @RequestParam(defaultValue = "") String code,
+                                                   @RequestParam(defaultValue = "0")int page,
+                                                   @RequestParam(defaultValue = "10")int size){
+        return iUserService.getStudentsByCriteria(email, firstName, lastName, programID, code, page, size);
     }
 }

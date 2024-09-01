@@ -8,6 +8,7 @@ import ma.dev7hd.studentspringngapp.entities.Payment;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentStatus;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentType;
 import ma.dev7hd.studentspringngapp.metier.IMetier;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,6 +73,11 @@ public class PaymentService implements IPaymentService {
     @Override
     public List<InfoStatusChangesDTO> getPaymentStatusChanges(){
         return iMetier.getChanges();
+    }
+
+    @Override
+    public Page<InfoPaymentDTO> getPaymentsByCriteria(String code, Double min, Double max, PaymentStatus status, PaymentType type, int page, int size) {
+        return iMetier.getPaymentsByCriteria(code, min, max, status, type, page, size);
     }
 
 }

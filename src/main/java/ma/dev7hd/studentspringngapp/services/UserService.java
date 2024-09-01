@@ -7,8 +7,10 @@ import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewAdminDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewStudentDTO;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfosStudentDTO;
 import ma.dev7hd.studentspringngapp.entities.User;
+import ma.dev7hd.studentspringngapp.enumirat.DepartmentName;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
 import ma.dev7hd.studentspringngapp.metier.IMetier;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -70,6 +72,16 @@ public class UserService implements IUserService {
     @Override
     public ResponseEntity<InfosStudentDTO> getStudentById(String email) {
         return iMetier.getStudentById(email);
+    }
+
+    @Override
+    public Page<InfosAdminDTO> getAdminsByCriteria(String email, String firstName, String lastName, DepartmentName departmentName, int page, int size){
+        return iMetier.getAdminsByCriteria(email, firstName, lastName, departmentName, page, size);
+    }
+
+    @Override
+    public Page<InfosStudentDTO> getStudentsByCriteria(String email, String firstName, String lastName, ProgramID programID, String code, int page, int size){
+        return iMetier.getStudentsByCriteria(email, firstName, lastName, programID, code, page, size);
     }
 
     @Scheduled(fixedRate = 86400000)

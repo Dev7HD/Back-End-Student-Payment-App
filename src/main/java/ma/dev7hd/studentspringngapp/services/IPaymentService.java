@@ -6,6 +6,7 @@ import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfoPaymentDTO;
 import ma.dev7hd.studentspringngapp.entities.Payment;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentStatus;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentType;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -32,4 +33,6 @@ public interface IPaymentService {
     ResponseEntity<List<InfoPaymentDTO>> getStudentPayments(String studentCode);
 
     List<InfoStatusChangesDTO> getPaymentStatusChanges();
+
+    Page<InfoPaymentDTO> getPaymentsByCriteria(String code, Double min, Double max, PaymentStatus status, PaymentType type, int page, int size);
 }

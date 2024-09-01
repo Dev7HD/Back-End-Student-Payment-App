@@ -10,6 +10,7 @@ import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewPaymentDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewStudentDTO;
 import ma.dev7hd.studentspringngapp.dtos.otherDTOs.ChangePWDTO;
 import ma.dev7hd.studentspringngapp.entities.*;
+import ma.dev7hd.studentspringngapp.enumirat.DepartmentName;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentStatus;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentType;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
@@ -17,6 +18,8 @@ import ma.dev7hd.studentspringngapp.repositories.*;
 import ma.dev7hd.studentspringngapp.security.services.ISecurityService;
 import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -271,7 +274,37 @@ public class MetierImpl implements IMetier {
         blacklistedTokenRepository.deleteAllByBlacklistedAtLessThan(day);
     }
 
+    @Override
+    public Page<InfosAdminDTO> getAdminsByCriteria(String email, String firstName, String lastName, DepartmentName departmentName, int page, int size){
+        Page<Admin> admins = adminRepository.findByFilter(email, firstName, lastName, departmentName, PageRequest.of(page, size));
+        return convertPageableAdminToDTO(admins);
+    }
+
+    @Override
+    public Page<InfosStudentDTO> getStudentsByCriteria(String email, String firstName, String lastName, ProgramID programID, String code, int page, int size){
+        Page<Student> students = studentRepository.findByFilter(email, firstName, lastName, programID, code, PageRequest.of(page, size));
+        return convertPageableStudentToDTO(students);
+    }
+
+    @Override
+    public Page<InfoPaymentDTO> getPaymentsByCriteria(String code, Double min, Double max, PaymentStatus status, PaymentType type, int page, int size){
+        Page<Payment> payments = paymentRepository.findByFilters(code, min, max, type, status, PageRequest.of(page, size));
+        return convertPageablePaymentToDTO(payments);
+    }
+
     //PRIVATE METHODS
+
+    private Page<InfosAdminDTO> convertPageableAdminToDTO(Page<Admin> admins){
+        return admins.map(admin -> modelMapper.map(admin, InfosAdminDTO.class));
+    }
+
+    private Page<InfosStudentDTO> convertPageableStudentToDTO(Page<Student> students){
+        return students.map(student -> modelMapper.map(student, InfosStudentDTO.class));
+    }
+
+    private Page<InfoPaymentDTO> convertPageablePaymentToDTO(Page<Payment> payments){
+        return payments.map(payment -> modelMapper.map(payment, InfoPaymentDTO.class));
+    }
 
     private InfoStatusChangesDTO convertChanges(PaymentStatusChange paymentStatusChange) {
         InfoStatusChangesDTO changes = modelMapper.map(paymentStatusChange, InfoStatusChangesDTO.class);
@@ -317,7 +350,7 @@ public class MetierImpl implements IMetier {
             List<UserTokens> userTokens = optionalUserTokens.get();
             userTokens.forEach(userToken -> {
                 String token = userToken.getToken();
-                securityService.logout(token);
+                securityService.logoutByToken(token);
             });
         }
     }
