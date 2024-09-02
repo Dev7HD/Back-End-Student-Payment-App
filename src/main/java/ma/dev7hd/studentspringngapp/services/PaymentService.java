@@ -1,7 +1,9 @@
 package ma.dev7hd.studentspringngapp.services;
 
 import lombok.AllArgsConstructor;
+import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfoAdminPaymentDTO;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfoStatusChangesDTO;
+import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfoStudentPaymentDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewPaymentDTO;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfoPaymentDTO;
 import ma.dev7hd.studentspringngapp.entities.Payment;
@@ -76,8 +78,13 @@ public class PaymentService implements IPaymentService {
     }
 
     @Override
-    public Page<InfoPaymentDTO> getPaymentsByCriteria(String code, Double min, Double max, PaymentStatus status, PaymentType type, int page, int size) {
-        return paymentMetier.getPaymentsByCriteria(code, min, max, status, type, page, size);
+    public Page<InfoAdminPaymentDTO> getPaymentsByCriteriaAsAdmin(String email, String code, Double min, Double max, PaymentStatus status, PaymentType type, int page, int size) {
+        return paymentMetier.getPaymentsByCriteriaAsAdmin(email, code, min, max, status, type, page, size);
+    }
+
+    @Override
+    public Page<InfoStudentPaymentDTO> getPaymentsByCriteriaAsStudent(Double min, Double max, PaymentStatus status, PaymentType type, int page, int size) {
+        return paymentMetier.getPaymentsByCriteriaAsStudent(min, max, status, type, page, size);
     }
 
 }

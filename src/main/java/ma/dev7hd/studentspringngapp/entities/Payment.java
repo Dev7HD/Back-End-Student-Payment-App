@@ -1,6 +1,5 @@
 package ma.dev7hd.studentspringngapp.entities;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 import ma.dev7hd.studentspringngapp.enumirat.*;
@@ -34,7 +33,7 @@ public class Payment {
 
     private String receipt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "student_id")
     private Student student;
 
@@ -43,7 +42,6 @@ public class Payment {
     private User addedBy;
 
     @OneToMany(mappedBy = "payment", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private List<PaymentStatusChange> paymentStatusChanges;
 
 }

@@ -1,8 +1,7 @@
 package ma.dev7hd.studentspringngapp.metier.payment;
 
 import lombok.AllArgsConstructor;
-import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfoPaymentDTO;
-import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfoStatusChangesDTO;
+import ma.dev7hd.studentspringngapp.dtos.infoDTOs.*;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewPaymentDTO;
 import ma.dev7hd.studentspringngapp.entities.*;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentStatus;
@@ -151,16 +150,34 @@ public class PaymentMetier implements IPaymentMetier {
     }
 
     @Override
-    public Page<InfoPaymentDTO> getPaymentsByCriteria(String code, Double min, Double max, PaymentStatus status, PaymentType type, int page, int size){
-        Page<Payment> payments = paymentRepository.findByFilters(code, min, max, type, status, PageRequest.of(page, size));
-        return convertPageablePaymentToDTO(payments);
+    public Page<InfoAdminPaymentDTO> getPaymentsByCriteriaAsAdmin(String email, String code, Double min, Double max, PaymentStatus status, PaymentType type, int page, int size){
+        Page<Payment> payments = paymentRepository.findByFilters(code, email, min, max, type, status, PageRequest.of(page, size));
+        return convertPageablePaymentToDTOAsAdmin(payments);
+    }
+
+    @Override
+    public Page<InfoStudentPaymentDTO> getPaymentsByCriteriaAsStudent(Double min, Double max, PaymentStatus status, PaymentType type, int page, int size){
+        String currentStudentEmail = getCurrentUserEmail();
+        Page<Payment> payments = paymentRepository.findByFilters("", currentStudentEmail, min, max, type, status, PageRequest.of(page, size));
+        return convertPageablePaymentToDTOAsStudent(payments);
     }
 
     // Private methods
 
-    private Page<InfoPaymentDTO> convertPageablePaymentToDTO(Page<Payment> payments){
-        return payments.map(payment -> modelMapper.map(payment, InfoPaymentDTO.class));
+    private Page<InfoAdminPaymentDTO> convertPageablePaymentToDTOAsAdmin(Page<Payment> payments) {
+        return payments.map(payment -> {
+            InfoAdminPaymentDTO paymentDTO = modelMapper.map(payment, InfoAdminPaymentDTO.class);
+            InfosStudentDTO studentDTO = modelMapper.map(payment.getStudent(), InfosStudentDTO.class);
+            paymentDTO.setStudentDTO(studentDTO);
+            paymentDTO.setAddedBy(payment.getAddedBy().getEmail());
+            return paymentDTO;
+        });
     }
+
+    private Page<InfoStudentPaymentDTO> convertPageablePaymentToDTOAsStudent(Page<Payment> payments) {
+        return payments.map(payment -> modelMapper.map(payment, InfoStudentPaymentDTO.class));
+    }
+
 
     private InfoStatusChangesDTO convertChanges(PaymentStatusChange paymentStatusChange) {
         InfoStatusChangesDTO changes = modelMapper.map(paymentStatusChange, InfoStatusChangesDTO.class);

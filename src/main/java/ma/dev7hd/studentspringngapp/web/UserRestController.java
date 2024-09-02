@@ -198,4 +198,29 @@ public class UserRestController {
         return iUserService.getPendingStudent();
     }
 
+    @PutMapping("/expire-credentials")
+    ResponseEntity<String> expireUserCredentials(String email){
+        return iUserService.expireUserCredentials(email);
+    }
+
+    @PutMapping("/lock-account")
+    ResponseEntity<String> lockUserAccount(String email){
+        return iUserService.lockUserAccount(email);
+    }
+
+    @PutMapping("/disable-account")
+    ResponseEntity<String> disableUserAccount(String email){
+        return iUserService.disableUserAccount(email);
+    }
+
+    @PutMapping("/unlock-account")
+    ResponseEntity<String> unlockUserAccount(String email){
+        return iUserService.unlockUserAccount(email);
+    }
+
+    @PutMapping("/enable-account")
+    ResponseEntity<String> enableUserAccount(String email){
+        return iUserService.enableUserAccount(email);
+    }
+
 }

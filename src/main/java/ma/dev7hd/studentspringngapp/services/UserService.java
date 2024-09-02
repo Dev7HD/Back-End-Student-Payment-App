@@ -83,7 +83,7 @@ public class UserService implements IUserService {
 
     @Override
     public Page<InfosStudentDTO> getStudentsByCriteria(String email, String firstName, String lastName, ProgramID programID, String code, int page, int size){
-        return userMetier.getStudentsByCriteria(email, firstName, lastName, programID, code, page, size);
+        return userMetier.getStudentsByCriteriaAsAdmin(email, firstName, lastName, programID, code, page, size);
     }
 
     @Override
@@ -109,5 +109,30 @@ public class UserService implements IUserService {
     @Override
     public List<PendingStudent> getPendingStudent(){
         return userMetier.getPendingStudents();
+    }
+
+    @Override
+    public ResponseEntity<String> expireUserCredentials(String email){
+        return userMetier.expireUserCredentials(email);
+    }
+
+    @Override
+    public ResponseEntity<String> lockUserAccount(String email){
+        return userMetier.lockUserAccount(email);
+    }
+
+    @Override
+    public ResponseEntity<String> disableUserAccount(String email){
+        return userMetier.disableUserAccount(email);
+    }
+
+    @Override
+    public ResponseEntity<String> unlockUserAccount(String email){
+        return userMetier.unlockUserAccount(email);
+    }
+
+    @Override
+    public ResponseEntity<String> enableUserAccount(String email){
+        return userMetier.enableUserAccount(email);
     }
 }

@@ -42,6 +42,10 @@ public class StudentSpringNgAppApplication {
             student1.setPassword("$2y$10$fxUIQ9WtSfDTvahOsA.NJO55lClLZObHvRZ1SC0XlU9KCuBRa6LdO");
             student1.setCode("123456789");
             student1.setProgramId(ProgramID.SMA);
+            student1.setCredentialsNonExpired(true);
+            student1.setEnabled(true);
+            student1.setAccountNonExpired(true);
+            student1.setAccountNonLocked(true);
             userRepository.save(student1);
 
             Admin admin = new Admin();
@@ -50,6 +54,10 @@ public class StudentSpringNgAppApplication {
             admin.setEmail("hamza@damiri.com");
             admin.setPassword("$2y$10$fxUIQ9WtSfDTvahOsA.NJO55lClLZObHvRZ1SC0XlU9KCuBRa6LdO");
             admin.setDepartmentName(DepartmentName.SMP);
+            admin.setCredentialsNonExpired(true);
+            admin.setEnabled(true);
+            admin.setAccountNonExpired(true);
+            admin.setAccountNonLocked(true);
             userRepository.save(admin);
 
             studentRepository.findAll().forEach(student -> {

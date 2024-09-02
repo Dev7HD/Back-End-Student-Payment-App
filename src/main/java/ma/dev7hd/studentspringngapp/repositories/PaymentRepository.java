@@ -50,6 +50,7 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
 
     @Query("SELECT p FROM Payment p WHERE " +
             "(:code = '' OR p.student.code = :code) AND " +
+            "(:email = '' OR p.student.email = :email) AND " +
             "((:min IS NULL AND :max IS NULL) OR " +
             "(:min IS NOT NULL AND :max IS NOT NULL AND p.amount BETWEEN :min AND :max) OR " +
             "(:min IS NOT NULL AND :max IS NULL AND p.amount >= :min) OR " +
@@ -58,11 +59,11 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
             "(:status IS NULL OR p.status = :status)")
     Page<Payment> findByFilters(
             @Param("code") String code,
+            @Param("email") String email,
             @Param("min") Double min,
             @Param("max") Double max,
             @Param("type") PaymentType type,
             @Param("status") PaymentStatus status,
             Pageable pageable);
-
 
 }

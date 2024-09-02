@@ -42,6 +42,8 @@ public class UserMetier implements IUserMetier {
     private final PendingStudentRepository pendingStudentRepository;
     private final BanedRegistrationRepository banedRegistrationRepository;
 
+    private final String defaultPassword = "123456";
+
     @Override
     public ResponseEntity<User> deleteUser(String email) {
         Optional<User> optionalUser = userRepository.findByEmail(email);
@@ -101,18 +103,14 @@ public class UserMetier implements IUserMetier {
 
     @Override
     public ResponseEntity<NewAdminDTO> saveAdmin(@NotNull NewAdminDTO newAdminDTO) {
-        Admin admin = modelMapper.map(newAdminDTO, Admin.class);
-        admin.setPassword(passwordEncoder.encode("123456"));
-        admin.setPasswordChanged(false);
+        Admin admin = newAdminProcessing(modelMapper.map(newAdminDTO, Admin.class));
         userRepository.save(admin);
         return ResponseEntity.ok().body(newAdminDTO);
     }
 
     @Override
     public ResponseEntity<NewStudentDTO> saveStudent(@NotNull NewStudentDTO studentDTO) {
-        Student student = modelMapper.map(studentDTO, Student.class);
-        student.setPassword(passwordEncoder.encode("123456"));
-        student.setPasswordChanged(false);
+        Student student = newStudentProcessing(modelMapper.map(studentDTO, Student.class));
         userRepository.save(student);
         return ResponseEntity.ok().body(studentDTO);
     }
@@ -154,7 +152,7 @@ public class UserMetier implements IUserMetier {
     }
 
     @Override
-    public Page<InfosStudentDTO> getStudentsByCriteria(String email, String firstName, String lastName, ProgramID programID, String code, int page, int size){
+    public Page<InfosStudentDTO> getStudentsByCriteriaAsAdmin(String email, String firstName, String lastName, ProgramID programID, String code, int page, int size){
         Page<Student> students = studentRepository.findByFilter(email, firstName, lastName, programID, code, PageRequest.of(page, size));
         return convertPageableStudentToDTO(students);
     }
@@ -177,13 +175,14 @@ public class UserMetier implements IUserMetier {
     public ResponseEntity<?> approvingStudentRegistration(@NotNull String email){
         Optional<PendingStudent> optionalPendingStudent = pendingStudentRepository.findById(email);
         if (optionalPendingStudent.isPresent()) {
-            PendingStudent pendingStudent = optionalPendingStudent.get();
-            Student student = convertPendingStudentToStudent(pendingStudent);
-            student.setPassword(passwordEncoder.encode("123456"));
-            student.setPasswordChanged(false);
-            Student savedStudent = studentRepository.save(student);
-            pendingStudentRepository.delete(pendingStudent);
-            return ResponseEntity.ok().body(convertStudentToDto(savedStudent));
+            if (studentRepository.existsByEmailOrCode(optionalPendingStudent.get().getEmail(), optionalPendingStudent.get().getCode())){
+                PendingStudent pendingStudent = optionalPendingStudent.get();
+                Student approvedStudent = newStudentProcessing(convertPendingStudentToStudent(pendingStudent));
+                Student savedStudent = studentRepository.save(approvedStudent);
+                pendingStudentRepository.delete(pendingStudent);
+                return ResponseEntity.ok().body(convertStudentToDto(savedStudent));
+            }
+            return ResponseEntity.badRequest().body("Student already registered.");
         } else {
             return ResponseEntity.badRequest().body("Email is not correct.");
         }
@@ -196,6 +195,66 @@ public class UserMetier implements IUserMetier {
             PendingStudent pendingStudent = optionalPendingStudent.get();
             pendingStudentRepository.delete(pendingStudent);
             return ResponseEntity.ok().body("The registration was declined successfully.");
+        }
+        return ResponseEntity.badRequest().body("Email is not correct.");
+    }
+
+    @Override
+    public ResponseEntity<String> expireUserCredentials(String email){
+        Optional<User> optionalUser = userRepository.findById(email);
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            user.setCredentialsNonExpired(false);
+            userRepository.save(user);
+            return ResponseEntity.ok().body("User credentials has been expired.");
+        }
+        return ResponseEntity.badRequest().body("Email is not correct.");
+    }
+
+    @Override
+    public ResponseEntity<String> lockUserAccount(String email){
+        Optional<User> optionalUser = userRepository.findById(email);
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            user.setAccountNonExpired(false);
+            userRepository.save(user);
+            return ResponseEntity.ok().body("User account has been locked.");
+        }
+        return ResponseEntity.badRequest().body("Email is not correct.");
+    }
+
+    @Override
+    public ResponseEntity<String> disableUserAccount(String email){
+        Optional<User> optionalUser = userRepository.findById(email);
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            user.setEnabled(false);
+            userRepository.save(user);
+            return ResponseEntity.ok().body("User account has been disabled.");
+        }
+        return ResponseEntity.badRequest().body("Email is not correct.");
+    }
+
+    @Override
+    public ResponseEntity<String> unlockUserAccount(String email){
+        Optional<User> optionalUser = userRepository.findById(email);
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            user.setAccountNonLocked(true);
+            userRepository.save(user);
+            return ResponseEntity.ok().body("User account has been unlocked.");
+        }
+        return ResponseEntity.badRequest().body("Email is not correct.");
+    }
+
+    @Override
+    public ResponseEntity<String> enableUserAccount(String email){
+        Optional<User> optionalUser = userRepository.findById(email);
+        if (optionalUser.isPresent()){
+            User user = optionalUser.get();
+            user.setEnabled(true);
+            userRepository.save(user);
+            return ResponseEntity.ok().body("User account has been enabled.");
         }
         return ResponseEntity.badRequest().body("Email is not correct.");
     }
@@ -222,6 +281,28 @@ public class UserMetier implements IUserMetier {
     }
 
     //PRIVATE METHODS
+
+    private Student newStudentProcessing(Student student){
+        student.setAccountNonExpired(true);
+        student.setCredentialsNonExpired(false);
+        student.setAccountNonLocked(true);
+        student.setEnabled(true);
+        student.setPassword(passwordEncoder.encode(defaultPassword));
+        System.out.println(student.getEmail());
+        System.out.println(student.getProgramId());
+        return student;
+    }
+
+    private Admin newAdminProcessing(Admin admin){
+        admin.setAccountNonExpired(true);
+        admin.setCredentialsNonExpired(false);
+        admin.setAccountNonLocked(true);
+        admin.setEnabled(true);
+        admin.setPassword(passwordEncoder.encode(defaultPassword));
+        System.out.println(admin.getEmail());
+        System.out.println(admin.getDepartmentName());
+        return admin;
+    }
 
     private Page<InfosAdminDTO> convertPageableAdminToDTO(Page<Admin> admins){
         return admins.map(admin -> modelMapper.map(admin, InfosAdminDTO.class));
@@ -256,7 +337,9 @@ public class UserMetier implements IUserMetier {
             return ResponseEntity.badRequest().body("The new password must be different from the current one/Current password is not correct. ");
         }
         user.setPassword(passwordEncoder.encode(pwDTO.getNewPassword()));
-        user.setPasswordChanged(true);
+        if(!user.isCredentialsNonExpired()){
+            user.setCredentialsNonExpired(true);
+        }
         userRepository.save(user);
         oldTokensProcessing(null);
         return ResponseEntity.ok("Password has been changed");
@@ -278,8 +361,8 @@ public class UserMetier implements IUserMetier {
 
     private ResponseEntity<String> processPasswordReset(User targetUser, String loggedInUserEmail) {
         if (!targetUser.getEmail().equals(loggedInUserEmail)) {
-            targetUser.setPassword(passwordEncoder.encode("123456"));
-            targetUser.setPasswordChanged(false);
+            targetUser.setPassword(passwordEncoder.encode(defaultPassword));
+            targetUser.setCredentialsNonExpired(false);
             userRepository.save(targetUser);
             oldTokensProcessing(targetUser.getEmail());
             return ResponseEntity.ok("Password has been reset");

@@ -1,6 +1,8 @@
 package ma.dev7hd.studentspringngapp.services;
 
+import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfoAdminPaymentDTO;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfoStatusChangesDTO;
+import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfoStudentPaymentDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewPaymentDTO;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfoPaymentDTO;
 import ma.dev7hd.studentspringngapp.entities.Payment;
@@ -34,5 +36,7 @@ public interface IPaymentService {
 
     List<InfoStatusChangesDTO> getPaymentStatusChanges();
 
-    Page<InfoPaymentDTO> getPaymentsByCriteria(String code, Double min, Double max, PaymentStatus status, PaymentType type, int page, int size);
+    Page<InfoAdminPaymentDTO> getPaymentsByCriteriaAsAdmin(String email, String code, Double min, Double max, PaymentStatus status, PaymentType type, int page, int size);
+
+    Page<InfoStudentPaymentDTO> getPaymentsByCriteriaAsStudent(Double min, Double max, PaymentStatus status, PaymentType type, int page, int size);
 }

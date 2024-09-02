@@ -50,4 +50,14 @@ public interface IUserService {
     ResponseEntity<String> banStudentRegistration(@NotNull String email);
 
     List<PendingStudent> getPendingStudent();
+
+    ResponseEntity<String> expireUserCredentials(String email);
+
+    ResponseEntity<String> lockUserAccount(String email);
+
+    ResponseEntity<String> disableUserAccount(String email);
+
+    ResponseEntity<String> unlockUserAccount(String email);
+
+    ResponseEntity<String> enableUserAccount(String email);
 }

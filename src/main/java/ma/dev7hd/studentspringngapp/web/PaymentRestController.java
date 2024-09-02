@@ -2,7 +2,9 @@ package ma.dev7hd.studentspringngapp.web;
 
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.AllArgsConstructor;
+import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfoAdminPaymentDTO;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfoStatusChangesDTO;
+import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfoStudentPaymentDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewPaymentDTO;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfoPaymentDTO;
 import ma.dev7hd.studentspringngapp.entities.Payment;
@@ -125,10 +127,11 @@ public class PaymentRestController {
     }
 
     /**
-     * Get all payments with backend pagination and multi-criteria filtering
+     * Get all payments with backend pagination and multi-criteria filtering for admin user
      * @param paymentType PaymentType
      * @param paymentStatus PaymentStatus
      * @param code String
+     * @param email String
      * @param min int
      * @param max int
      * @param page default 0
@@ -136,13 +139,34 @@ public class PaymentRestController {
      * @return Page<InfoPaymentDTO>
      */
     @GetMapping("/filter")
-    public Page<InfoPaymentDTO> getPaymentsByTypeAndStatus(@RequestParam(name = "type", defaultValue = "") PaymentType paymentType,
-                                                           @RequestParam(name = "status", defaultValue = "") PaymentStatus paymentStatus,
-                                                           @RequestParam(defaultValue = "") String code,
-                                                           @RequestParam(defaultValue = "") Double min,
-                                                           @RequestParam(defaultValue = "") Double max,
-                                                           @RequestParam(defaultValue = "0") int page,
-                                                           @RequestParam(defaultValue = "10") int size) {
-        return iPaymentService.getPaymentsByCriteria(code, min, max, paymentStatus, paymentType, page, size);
+    public Page<InfoAdminPaymentDTO> getPaymentsByCriteriaAsAdmin(@RequestParam(name = "type", defaultValue = "") PaymentType paymentType,
+                                                                @RequestParam(name = "status", defaultValue = "") PaymentStatus paymentStatus,
+                                                                @RequestParam(defaultValue = "") String code,
+                                                                @RequestParam(defaultValue = "") String email,
+                                                                @RequestParam(defaultValue = "") Double min,
+                                                                @RequestParam(defaultValue = "") Double max,
+                                                                @RequestParam(defaultValue = "0") int page,
+                                                                @RequestParam(defaultValue = "10") int size) {
+        return iPaymentService.getPaymentsByCriteriaAsAdmin(email, code, min, max, paymentStatus, paymentType, page, size);
+    }
+
+    /**
+     * Get all payments with backend pagination and multi-criteria filtering for student user
+     * @param paymentType PaymentType
+     * @param paymentStatus PaymentStatus
+     * @param min int
+     * @param max int
+     * @param page default 0
+     * @param size default 10
+     * @return Page<InfoPaymentDTO>
+     */
+    @GetMapping("/student-payments")
+    public Page<InfoStudentPaymentDTO> getPaymentsByCriteriaAsStudent(@RequestParam(name = "type", defaultValue = "") PaymentType paymentType,
+                                                                      @RequestParam(name = "status", defaultValue = "") PaymentStatus paymentStatus,
+                                                                      @RequestParam(defaultValue = "") Double min,
+                                                                      @RequestParam(defaultValue = "") Double max,
+                                                                      @RequestParam(defaultValue = "0") int page,
+                                                                      @RequestParam(defaultValue = "10") int size) {
+        return iPaymentService.getPaymentsByCriteriaAsStudent(min, max, paymentStatus, paymentType, page, size);
     }
 }

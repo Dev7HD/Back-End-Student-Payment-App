@@ -39,13 +39,23 @@ public interface IUserMetier {
 
     Page<InfosAdminDTO> getAdminsByCriteria(String email, String firstName, String lastName, DepartmentName departmentName, int page, int size);
 
-    Page<InfosStudentDTO> getStudentsByCriteria(String email, String firstName, String lastName, ProgramID programID, String code, int page, int size);
+    Page<InfosStudentDTO> getStudentsByCriteriaAsAdmin(String email, String firstName, String lastName, ProgramID programID, String code, int page, int size);
 
     ResponseEntity<String> registerStudent(NewPendingStudentDTO pendingStudentDTO);
 
     ResponseEntity<?> approvingStudentRegistration(@NotNull String email);
 
     ResponseEntity<String> declineStudentRegistration(@NotNull String email);
+
+    ResponseEntity<String> expireUserCredentials(String email);
+
+    ResponseEntity<String> lockUserAccount(String email);
+
+    ResponseEntity<String> disableUserAccount(String email);
+
+    ResponseEntity<String> unlockUserAccount(String email);
+
+    ResponseEntity<String> enableUserAccount(String email);
 
     ResponseEntity<String> banStudentRegistration(@NotNull String email);
 
