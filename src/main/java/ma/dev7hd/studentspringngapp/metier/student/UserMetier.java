@@ -280,6 +280,21 @@ public class UserMetier implements IUserMetier {
         return pendingStudentRepository.findAll();
     }
 
+    @Override
+    public ResponseEntity<InfosStudentDTO> updateStudentInfo(@NotNull InfosStudentDTO studentDTO){
+        Optional<Student> optionalStudent = studentRepository.findById(studentDTO.getEmail());
+        if (optionalStudent.isPresent()) {
+            Student student = optionalStudent.get();
+            student.setFirstName(studentDTO.getFirstName());
+            student.setLastName(studentDTO.getLastName());
+            student.setProgramId(studentDTO.getProgramId());
+            student.setCode(studentDTO.getCode());
+            Student savedStudentInfo = studentRepository.save(student);
+            return ResponseEntity.ok(convertStudentToDto(savedStudentInfo));
+        }
+        return ResponseEntity.badRequest().build();
+    }
+
     //PRIVATE METHODS
 
     private Student newStudentProcessing(Student student){

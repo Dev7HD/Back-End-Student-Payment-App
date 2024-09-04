@@ -29,6 +29,8 @@ public interface IUserService {
 
     ResponseEntity<NewStudentDTO> addStudent(NewStudentDTO studentDTO);
 
+    ResponseEntity<InfosStudentDTO> updateStudent(InfosStudentDTO studentDTO);
+
     ResponseEntity<String> changePassword(ChangePWDTO changePWDTO);
 
     List<InfosAdminDTO> getAllAdmins();

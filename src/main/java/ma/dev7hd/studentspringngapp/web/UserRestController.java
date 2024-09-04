@@ -86,6 +86,11 @@ public class UserRestController {
         return iUserService.deleteUserByEmail(email);
     }
 
+    @PutMapping("/student/update")
+    public ResponseEntity<InfosStudentDTO> updateStudentInfo(@RequestBody InfosStudentDTO infosStudentDTO) {
+        return iUserService.updateStudent(infosStudentDTO);
+    }
+
     /**
      * Saving a new student
      * @param studentDTO student information (email, firstName, lastName, code and programId)

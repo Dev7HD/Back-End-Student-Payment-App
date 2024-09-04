@@ -21,6 +21,7 @@ public class Student extends User {
     @Column(unique = true)
     private String code;
 
+    @Enumerated(EnumType.STRING)
     private ProgramID programId;
 
     @OneToMany(mappedBy = "student", fetch = FetchType.LAZY, cascade = CascadeType.ALL)

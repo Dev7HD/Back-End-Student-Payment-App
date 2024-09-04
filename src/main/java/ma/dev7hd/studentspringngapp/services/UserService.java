@@ -57,6 +57,11 @@ public class UserService implements IUserService {
     }
 
     @Override
+    public ResponseEntity<InfosStudentDTO> updateStudent(InfosStudentDTO studentDTO) {
+        return userMetier.updateStudentInfo(studentDTO);
+    }
+
+    @Override
     public ResponseEntity<String> changePassword(ChangePWDTO changePWDTO) {
         return userMetier.changePW(changePWDTO);
     }

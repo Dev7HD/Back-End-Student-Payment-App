@@ -60,4 +60,6 @@ public interface IUserMetier {
     ResponseEntity<String> banStudentRegistration(@NotNull String email);
 
     List<PendingStudent> getPendingStudents();
+
+    ResponseEntity<InfosStudentDTO> updateStudentInfo(@NotNull InfosStudentDTO studentDTO);
 }
