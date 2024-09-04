@@ -288,8 +288,6 @@ public class UserMetier implements IUserMetier {
         student.setAccountNonLocked(true);
         student.setEnabled(true);
         student.setPassword(passwordEncoder.encode(defaultPassword));
-        System.out.println(student.getEmail());
-        System.out.println(student.getProgramId());
         return student;
     }
 
@@ -299,8 +297,6 @@ public class UserMetier implements IUserMetier {
         admin.setAccountNonLocked(true);
         admin.setEnabled(true);
         admin.setPassword(passwordEncoder.encode(defaultPassword));
-        System.out.println(admin.getEmail());
-        System.out.println(admin.getDepartmentName());
         return admin;
     }
 

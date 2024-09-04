@@ -17,6 +17,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import java.io.File;
+import java.net.URI;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 
 @EnableScheduling
@@ -35,6 +39,10 @@ public class StudentSpringNgAppApplication {
     //@Bean
     CommandLineRunner commandLineRunner(StudentRepository studentRepository, PaymentRepository paymentRepository, UserRepository userRepository) {
         return args -> {
+            final Path PAYMENTS_FOLDER_PATH = Paths.get(System.getProperty("user.home"), "data", "payments");
+            Path filePath = PAYMENTS_FOLDER_PATH.resolve("p.pdf");
+            File file = new File(filePath.toUri());
+            URI uri = file.toURI();
             Student student1 = new Student();
             student1.setFirstName("John");
             student1.setLastName("Doe");
@@ -70,7 +78,7 @@ public class StudentSpringNgAppApplication {
                             .type(random >= 0.75 ? PaymentType.CASH : random >= 0.5 ? PaymentType.CHECK : random >= 0.25 ? PaymentType.DEPOSIT : PaymentType.TRANSFER)
                             .status(random >= 0.66 ? PaymentStatus.VALIDATED : random >= 0.33 ? PaymentStatus.CREATED : PaymentStatus.REJECTED )
                             .addedBy(student)
-                            .receipt("./static/recipes").build();
+                            .receipt(uri.toString()).build();
                     paymentRepository.save(payment);
                 }
             });

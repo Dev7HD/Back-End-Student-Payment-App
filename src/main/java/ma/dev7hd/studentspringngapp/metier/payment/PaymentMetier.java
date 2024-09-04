@@ -6,10 +6,7 @@ import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewPaymentDTO;
 import ma.dev7hd.studentspringngapp.entities.*;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentStatus;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentType;
-import ma.dev7hd.studentspringngapp.repositories.PaymentRepository;
-import ma.dev7hd.studentspringngapp.repositories.PaymentStatusChangeRepository;
-import ma.dev7hd.studentspringngapp.repositories.StudentRepository;
-import ma.dev7hd.studentspringngapp.repositories.UserRepository;
+import ma.dev7hd.studentspringngapp.repositories.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
@@ -38,6 +36,7 @@ import java.util.stream.Collectors;
 @Transactional
 public class PaymentMetier implements IPaymentMetier {
     private final UserRepository userRepository;
+    private final AdminRepository adminRepository;
     private final StudentRepository studentRepository;
     private final PaymentRepository paymentRepository;
     private final PaymentStatusChangeRepository paymentStatusChangeRepository;
@@ -196,16 +195,16 @@ public class PaymentMetier implements IPaymentMetier {
     }
 
     private ResponseEntity<InfoPaymentDTO> processPaymentStatusUpdate(Payment payment, PaymentStatus newStatus) {
-        User user = getCurrentUser().orElse(null);
-
-        if (user instanceof Admin admin) {
-            PaymentStatus oldStatus = payment.getStatus();
+        String currentUserEmail = getCurrentUserEmail();
+        Optional<Admin> optionalAdmin = adminRepository.findById(currentUserEmail);
+        PaymentStatus oldStatus = payment.getStatus();
+        if (optionalAdmin.isPresent()) {
             payment.setStatus(newStatus);
 
             PaymentStatusChange changes = PaymentStatusChange.builder()
                     .oldStatus(oldStatus)
                     .newStatus(newStatus)
-                    .admin(admin)
+                    .admin(optionalAdmin.get())
                     .payment(payment)
                     .changeDate(LocalDateTime.now())
                     .build();
@@ -219,14 +218,16 @@ public class PaymentMetier implements IPaymentMetier {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
-    private Payment buildPayment(NewPaymentDTO newPaymentDTO, Student student, User user, String receiptUri) {
+    private Payment buildPayment(NewPaymentDTO newPaymentDTO, Student student, User user, String receiptPath) {
+        File file = new File(receiptPath);
+        String fileUri = file.toURI().toString();
         return Payment.builder()
                 .amount(newPaymentDTO.getAmount())
                 .student(student)
                 .type(newPaymentDTO.getPaymentType())
                 .date(newPaymentDTO.getDate())
                 .status(PaymentStatus.CREATED)
-                .receipt(receiptUri)
+                .receipt(fileUri)
                 .addedBy(user)
                 .build();
     }
