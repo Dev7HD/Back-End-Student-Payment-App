@@ -1,9 +1,6 @@
 package ma.dev7hd.studentspringngapp.entities;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.*;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
 
@@ -18,13 +15,19 @@ import java.time.Instant;
 public class BanedRegistration {
     @Id
     String email;
+    @Column(nullable = false, updatable = false)
     String firstName;
+    @Column(nullable = false, updatable = false)
     String lastName;
+    @Column(nullable = false, updatable = false)
     Instant registerDate;
+    @Column(nullable = false, updatable = false)
     Instant banDate;
+    @Column(nullable = false, updatable = false)
     ProgramID programID;
+    @Column(nullable = false, updatable = false)
     String code;
     @ManyToOne
-    @JoinColumn(name = "admin_id")
+    @JoinColumn(name = "admin_id", nullable = false, updatable = false)
     Admin adminBanner;
 }

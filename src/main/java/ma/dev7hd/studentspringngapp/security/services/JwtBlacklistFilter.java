@@ -35,13 +35,19 @@ public class JwtBlacklistFilter extends OncePerRequestFilter {
 
         String token = getTokenFromRequest(request);
 
-        if (request.getRequestURI().startsWith("/auth/login")) {
+        String path = request.getRequestURI();
+
+        if (path.startsWith("/auth/login")) {
             chain.doFilter(request, response);
             return;
         }
 
-        String path = request.getRequestURI();
         if ("/user/register".equals(path)) {
+            chain.doFilter(request, response);
+            return;
+        }
+
+        if (path.startsWith("/ws")) {
             chain.doFilter(request, response);
             return;
         }

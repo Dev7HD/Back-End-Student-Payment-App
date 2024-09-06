@@ -1,9 +1,6 @@
 package ma.dev7hd.studentspringngapp.entities;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Instant;
@@ -15,7 +12,11 @@ import java.util.UUID;
 public class UserTokens {
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
+    @Column(nullable = false, updatable = false)
     private String email;
+    @Lob
+    @Column(unique = true, nullable = false, updatable = false, columnDefinition = "TEXT")
     private String token;
+    @Column(nullable = false, updatable = false)
     private Instant loginTime;
 }

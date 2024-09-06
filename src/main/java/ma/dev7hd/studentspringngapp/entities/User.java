@@ -22,13 +22,19 @@ public class User implements UserDetails {
     @Id
     private String email;
 
+    @Column(nullable = false)
     private String firstName;
 
+    @Column(nullable = false)
     private String lastName;
 
+    @Column(nullable = false)
     private boolean accountNonExpired;
+    @Column(nullable = false)
     private boolean accountNonLocked;
+    @Column(nullable = false)
     private boolean credentialsNonExpired;
+    @Column(nullable = false)
     private boolean enabled;
 
     @Column(nullable = false)

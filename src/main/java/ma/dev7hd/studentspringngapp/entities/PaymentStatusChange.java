@@ -5,7 +5,6 @@ import lombok.*;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentStatus;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.UUID;
 
 @Entity
@@ -21,20 +20,23 @@ public class PaymentStatusChange {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "admin_id")
+    @JoinColumn(name = "admin_id", nullable = false, updatable = false)
     private Admin admin;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "payment_id")
+    @JoinColumn(name = "payment_id", nullable = false, updatable = false)
     private Payment payment;
 
     @Temporal(TemporalType.TIMESTAMP)
+    @Column(nullable = false, updatable = false)
     private LocalDateTime changeDate;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false, updatable = false)
     private PaymentStatus newStatus;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false, updatable = false)
     private PaymentStatus oldStatus;
 }
 

@@ -18,7 +18,6 @@ import java.util.List;
 @Setter
 public class Student extends User {
 
-    @Column(unique = true)
     private String code;
 
     @Enumerated(EnumType.STRING)

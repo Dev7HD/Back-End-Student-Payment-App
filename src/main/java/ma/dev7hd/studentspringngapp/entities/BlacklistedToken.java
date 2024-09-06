@@ -15,7 +15,8 @@ public class BlacklistedToken {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
-    @Column(unique = true, nullable = false)
+    @Column(unique = true, nullable = false, updatable = false)
     private String token;
+    @Column(unique = true, nullable = false, updatable = false)
     private Instant blacklistedAt;
 }
