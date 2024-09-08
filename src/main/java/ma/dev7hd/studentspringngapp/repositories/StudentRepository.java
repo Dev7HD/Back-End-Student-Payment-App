@@ -30,5 +30,7 @@ public interface StudentRepository extends JpaRepository<Student,String> {
             @Param("code") String code,
             Pageable pageable);
 
+    Integer countByProgramId(ProgramID programId);
+
 }
 

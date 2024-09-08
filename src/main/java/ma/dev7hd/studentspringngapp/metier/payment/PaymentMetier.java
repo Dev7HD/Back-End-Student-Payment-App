@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.*;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewPaymentDTO;
 import ma.dev7hd.studentspringngapp.entities.*;
+import ma.dev7hd.studentspringngapp.enumirat.Months;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentStatus;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentType;
 import ma.dev7hd.studentspringngapp.repositories.*;
@@ -25,10 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -254,5 +252,28 @@ public class PaymentMetier implements IPaymentMetier {
 
     private String getCurrentUserEmail() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
+    }
+
+    @Override
+    public ResponseEntity<Map<Months, Long>> getPaymentsByMonth(Integer month) {
+        if(month != null && (month > 12 || month < 1)) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        Map<Months, Long> countByMonth = new EnumMap<>(Months.class);
+        List<Long[]> counted = paymentRepository.countAllPaymentsGroupByDateAndOptionalMonth(month);
+        if(month == null){
+            int i = 0;
+            for(Months months : Months.values()) {
+                countByMonth.put(months, counted.get(i)[1]);
+                System.out.println("Month: " + months + ", Count: " + countByMonth.get(months));
+                i++;
+            }
+        } else {
+            countByMonth.put(Months.values()[month - 1], counted.getFirst()[1]);
+        }
+
+        return ResponseEntity.ok(countByMonth);
+
     }
 }

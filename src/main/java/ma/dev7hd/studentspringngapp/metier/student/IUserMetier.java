@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
+import java.util.Map;
 
 public interface IUserMetier {
     ResponseEntity<User> deleteUser(String email);
@@ -62,4 +63,6 @@ public interface IUserMetier {
     List<PendingStudent> getPendingStudents();
 
     ResponseEntity<InfosStudentDTO> updateStudentInfo(@NotNull InfosStudentDTO studentDTO);
+
+    Map<ProgramID, List<Double>> getProgramIdCounts();
 }

@@ -7,6 +7,7 @@ import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfoStudentPaymentDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewPaymentDTO;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfoPaymentDTO;
 import ma.dev7hd.studentspringngapp.entities.Payment;
+import ma.dev7hd.studentspringngapp.enumirat.Months;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentStatus;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentType;
 import ma.dev7hd.studentspringngapp.metier.payment.IPaymentMetier;
@@ -18,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -85,6 +87,11 @@ public class PaymentService implements IPaymentService {
     @Override
     public Page<InfoStudentPaymentDTO> getPaymentsByCriteriaAsStudent(Double min, Double max, PaymentStatus status, PaymentType type, int page, int size) {
         return paymentMetier.getPaymentsByCriteriaAsStudent(min, max, status, type, page, size);
+    }
+
+    @Override
+    public ResponseEntity<Map<Months, Long>> getPaymentsByMonth(Integer month) {
+        return paymentMetier.getPaymentsByMonth(month);
     }
 
 }

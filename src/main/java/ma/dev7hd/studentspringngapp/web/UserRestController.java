@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @CrossOrigin("*")
@@ -226,6 +227,11 @@ public class UserRestController {
     @PutMapping("/enable-account")
     ResponseEntity<String> enableUserAccount(String email){
         return iUserService.enableUserAccount(email);
+    }
+
+    @GetMapping("/student/count-by-program")
+    public Map<ProgramID, List<Double>> getProgramIdCounts(){
+        return iUserService.getProgramIdCounts();
     }
 
 }

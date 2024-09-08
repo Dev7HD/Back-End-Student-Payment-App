@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -46,10 +47,11 @@ public class UserMetier implements IUserMetier {
 
     @Override
     public ResponseEntity<User> deleteUser(String email) {
-        Optional<User> optionalUser = userRepository.findByEmail(email);
+        Optional<User> optionalUser = userRepository.findById(email);
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
             if(user instanceof Student) {
+                Student.updateProgramCountsFromDB(((Student) user).getProgramId(), -1.0);
                 paymentRepository.deleteByStudentCode(((Student) user).getCode());
             }
             userRepository.delete(user);
@@ -175,7 +177,7 @@ public class UserMetier implements IUserMetier {
     public ResponseEntity<?> approvingStudentRegistration(@NotNull String email){
         Optional<PendingStudent> optionalPendingStudent = pendingStudentRepository.findById(email);
         if (optionalPendingStudent.isPresent()) {
-            if (studentRepository.existsByEmailOrCode(optionalPendingStudent.get().getEmail(), optionalPendingStudent.get().getCode())){
+            if (!studentRepository.existsByEmailOrCode(optionalPendingStudent.get().getEmail(), optionalPendingStudent.get().getCode())){
                 PendingStudent pendingStudent = optionalPendingStudent.get();
                 Student approvedStudent = newStudentProcessing(convertPendingStudentToStudent(pendingStudent));
                 Student savedStudent = studentRepository.save(approvedStudent);
@@ -290,9 +292,16 @@ public class UserMetier implements IUserMetier {
             student.setProgramId(studentDTO.getProgramId());
             student.setCode(studentDTO.getCode());
             Student savedStudentInfo = studentRepository.save(student);
+            Student.updateProgramCountsFromDB(student.getProgramId(), -1.0);
+            Student.updateProgramCountsFromDB(studentDTO.getProgramId(), 1.0);
             return ResponseEntity.ok(convertStudentToDto(savedStudentInfo));
         }
         return ResponseEntity.badRequest().build();
+    }
+
+    @Override
+    public Map<ProgramID, List<Double>> getProgramIdCounts(){
+        return Student.programIDCounter;
     }
 
     //PRIVATE METHODS
@@ -303,6 +312,7 @@ public class UserMetier implements IUserMetier {
         student.setAccountNonLocked(true);
         student.setEnabled(true);
         student.setPassword(passwordEncoder.encode(defaultPassword));
+        Student.updateProgramCountsFromDB(student.getProgramId(),1.0);
         return student;
     }
 

@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
+import java.util.Map;
 
 public interface IUserService {
     ResponseEntity<User> deleteUserByEmail(String email);
@@ -62,4 +63,6 @@ public interface IUserService {
     ResponseEntity<String> unlockUserAccount(String email);
 
     ResponseEntity<String> enableUserAccount(String email);
+
+    Map<ProgramID, List<Double>> getProgramIdCounts();
 }

@@ -19,35 +19,6 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
 
     void deleteByStudentCode(String studentCode);
 
-    /*@Query("SELECT p FROM Payment p WHERE " +
-            "(:type IS NULL OR p.type = :type) AND " +
-            "(:status IS NULL OR p.status = :status)" )
-    Page<Payment> findByFilterTypeAndStatus(
-            @Param("type") PaymentType type,
-            @Param("status") PaymentStatus status,
-            Pageable pageable);
-
-    @Query("SELECT p FROM Payment p WHERE " +
-            "p.amount BETWEEN :min AND :max AND " +
-            "(:paymentType IS NULL OR p.type = :paymentType) AND " +
-            "(:paymentStatus IS NULL OR p.status = :paymentStatus)")
-    Page<Payment> findByAmountBetweenAndTypeAndStatus(
-            @Param("min") double min,
-            @Param("max") double max,
-            @Param("paymentType") PaymentType paymentType,
-            @Param("paymentStatus") PaymentStatus paymentStatus,
-            Pageable pageable);
-
-    @Query("SELECT p FROM Payment p WHERE " +
-            "p.student.code = :code AND " +
-            "(:paymentStatus IS NULL OR p.status = :paymentStatus) AND " +
-            "(:paymentType IS NULL OR p.type = :paymentType)")
-    Page<Payment> findByStudentCodeAndStatusAndType(
-            @Param("code") String code,
-            @Param("paymentStatus") PaymentStatus paymentStatus,
-            @Param("paymentType") PaymentType paymentType,
-            Pageable pageable);*/
-
     @Query("SELECT p FROM Payment p WHERE " +
             "(:code = '' OR p.student.code = :code) AND " +
             "(:email = '' OR p.student.email = :email) AND " +
@@ -66,4 +37,22 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
             @Param("status") PaymentStatus status,
             Pageable pageable);
 
+    /*@Query("SELECT FUNCTION('MONTH', p.date) AS month, COUNT(p) AS count " +
+            "FROM Payment p " +
+            "WHERE (:month IS NULL OR FUNCTION('MONTH', p.date) = :month) " +
+            "GROUP BY FUNCTION('MONTH', p.date)")
+    Map<String, Integer> countPaymentsByMonth(@Param("month") Integer month);
+
+    @Query("SELECT MONTH(p.date) AS mounth, COUNT(p) AS count " +
+            "FROM Payment p " +
+            "WHERE (:month IS NULL OR MONTH(p.date) = :month) " +
+            "GROUP BY MONTH(p.date)")
+    List<Object[]> countAllPaymentsGroupByDateAndOptionalMonth(@Param("month") Integer month);*/
+
+    @Query("SELECT MONTH(p.date) AS month, COUNT(p) AS count " +
+            "FROM Payment p " +
+            "WHERE (:month IS NULL OR MONTH(p.date) = :month) " +
+            "GROUP BY MONTH(p.date)" +
+            "ORDER BY MONTH(p.date) ASC")
+    List<Long[]> countAllPaymentsGroupByDateAndOptionalMonth(@Param("month") Integer month);
 }

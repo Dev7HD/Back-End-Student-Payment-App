@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Transactional
@@ -139,5 +140,10 @@ public class UserService implements IUserService {
     @Override
     public ResponseEntity<String> enableUserAccount(String email){
         return userMetier.enableUserAccount(email);
+    }
+
+    @Override
+    public Map<ProgramID, List<Double>> getProgramIdCounts(){
+        return userMetier.getProgramIdCounts();
     }
 }
