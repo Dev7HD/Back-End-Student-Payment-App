@@ -5,6 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
+import ma.dev7hd.studentspringngapp.repositories.UserTokensRepository;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -29,6 +30,12 @@ public class JwtBlacklistFilter extends OncePerRequestFilter {
     private final IJwtBlacklistService jwtBlacklistService;
     private final JwtDecoder jwtDecoder;
 
+    private static final String[] WHITE_LIST_URL = { "/api/v1/auth/", "/v2/api-docs", "/v3/api-docs",
+            "/v3/api-docs/", "/swagger-resources", "/swagger-resources/", "/configuration/ui",
+            "/configuration/security", "/swagger-ui/", "/webjars/", "/swagger-ui.html", "/api/auth/",
+            "/api/test/", "/authenticate", "/auth/login", "/user/register" };
+    private final UserTokensRepository userTokensRepository;
+
     @Override
     protected void doFilterInternal(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull FilterChain chain)
             throws ServletException, IOException {
@@ -37,24 +44,22 @@ public class JwtBlacklistFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
-        if (path.startsWith("/auth/login")) {
-            chain.doFilter(request, response);
-            return;
-        }
-
-        if ("/user/register".equals(path)) {
-            chain.doFilter(request, response);
-            return;
-        }
-
-        if (path.startsWith("/ws")) {
-            chain.doFilter(request, response);
-            return;
+        for (String url : WHITE_LIST_URL) {
+            if (path.startsWith(url)) {
+                chain.doFilter(request, response);
+                return;
+            }
         }
 
         if (jwtBlacklistService.isTokenBlacklisted(token)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("Token is blacklisted");
+            return;
+        }
+
+        if (userTokensRepository.findByToken(token).isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Try to login again.");
             return;
         }
 

@@ -1,6 +1,11 @@
 package ma.dev7hd.studentspringngapp;
 
+import ma.dev7hd.studentspringngapp.entities.Admin;
+import ma.dev7hd.studentspringngapp.entities.Payment;
 import ma.dev7hd.studentspringngapp.entities.Student;
+import ma.dev7hd.studentspringngapp.enumirat.DepartmentName;
+import ma.dev7hd.studentspringngapp.enumirat.PaymentStatus;
+import ma.dev7hd.studentspringngapp.enumirat.PaymentType;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
 import ma.dev7hd.studentspringngapp.repositories.PaymentRepository;
 import ma.dev7hd.studentspringngapp.repositories.StudentRepository;
@@ -12,6 +17,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import java.io.File;
+import java.net.URI;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.time.Month;
 import java.util.Arrays;
 import java.util.List;
 
@@ -41,10 +52,6 @@ public class StudentSpringNgAppApplication {
                 Integer count = studentRepository.countByProgramId(programID);
                 List<Double> values = Arrays.asList(count.doubleValue(), count.doubleValue() / total.doubleValue());
                 Student.programIDCounter.put(programID, values);
-                System.out.println("***************MAIN*******************");
-                System.out.println("value: "+values.getFirst());
-                System.out.println("percentage: "+values.get(1));
-                System.out.println("***************MAIN*******************");
             }
             /*final Path PAYMENTS_FOLDER_PATH = Paths.get(System.getProperty("user.home"), "data", "payments");
             Path filePath = PAYMENTS_FOLDER_PATH.resolve("p.pdf");

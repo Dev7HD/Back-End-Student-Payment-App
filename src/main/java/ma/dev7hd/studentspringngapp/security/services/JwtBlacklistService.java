@@ -44,5 +44,8 @@ public class JwtBlacklistService implements IJwtBlacklistService {
     public void emptyBlacklistTokens(){
         Instant day = Instant.now().minus(24, ChronoUnit.HOURS);
         blacklistedTokenRepository.deleteAllByBlacklistedAtLessThan(day);
+        System.out.println("Old blacklisted tokens removed (Older then 24 hours)");
+        userTokensRepository.deleteAllByLoginTimeLessThan(day);
+        System.out.println("Expired login tokens removed (Older then 24 hours)");
     }
 }
