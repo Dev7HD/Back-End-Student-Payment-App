@@ -7,7 +7,6 @@ import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewAdminDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewStudentDTO;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfosStudentDTO;
 import ma.dev7hd.studentspringngapp.entities.PendingStudent;
-import ma.dev7hd.studentspringngapp.entities.User;
 import ma.dev7hd.studentspringngapp.enumirat.DepartmentName;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
 import org.jetbrains.annotations.NotNull;
@@ -18,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface IUserService {
-    ResponseEntity<User> deleteUserByEmail(String email);
+    ResponseEntity<String> deleteUserByEmail(String email);
 
     List<InfosStudentDTO> getAllStudents();
 
@@ -54,15 +53,7 @@ public interface IUserService {
 
     List<PendingStudent> getPendingStudent();
 
-    ResponseEntity<String> expireUserCredentials(String email);
-
-    ResponseEntity<String> lockUserAccount(String email);
-
-    ResponseEntity<String> disableUserAccount(String email);
-
-    ResponseEntity<String> unlockUserAccount(String email);
-
-    ResponseEntity<String> enableUserAccount(String email);
-
     Map<ProgramID, List<Double>> getProgramIdCounts();
+
+    ResponseEntity<String> toggleEnableUserAccount(String email);
 }

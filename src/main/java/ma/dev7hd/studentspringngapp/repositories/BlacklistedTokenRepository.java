@@ -8,6 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 public interface BlacklistedTokenRepository extends JpaRepository<BlacklistedToken, String> {
-    boolean existsByToken(String token);
+    boolean existsByTokenHash(String tokenHash);
     void deleteAllByBlacklistedAtLessThan(Instant day);
 }

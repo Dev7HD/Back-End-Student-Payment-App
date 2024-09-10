@@ -1,11 +1,7 @@
 package ma.dev7hd.studentspringngapp.services;
 
-import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfoAdminPaymentDTO;
-import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfoStatusChangesDTO;
-import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfoStudentPaymentDTO;
+import ma.dev7hd.studentspringngapp.dtos.infoDTOs.*;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewPaymentDTO;
-import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfoPaymentDTO;
-import ma.dev7hd.studentspringngapp.entities.Payment;
 import ma.dev7hd.studentspringngapp.enumirat.Months;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentStatus;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentType;
@@ -23,8 +19,8 @@ public interface IPaymentService {
 
     List<InfoPaymentDTO> getPaymentsByStatus(PaymentStatus status);
 
-    ResponseEntity<Payment> newPayment(NewPaymentDTO newPaymentDTO,
-                                       MultipartFile file) throws IOException;
+    ResponseEntity<InfoSavedPayment> newPayment(NewPaymentDTO newPaymentDTO,
+                                                MultipartFile file) throws IOException;
 
     ResponseEntity<InfoPaymentDTO> paymentStatusUpdate(UUID id, PaymentStatus status);
 

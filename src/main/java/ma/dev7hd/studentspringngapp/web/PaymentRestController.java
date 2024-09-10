@@ -2,12 +2,8 @@ package ma.dev7hd.studentspringngapp.web;
 
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.AllArgsConstructor;
-import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfoAdminPaymentDTO;
-import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfoStatusChangesDTO;
-import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfoStudentPaymentDTO;
+import ma.dev7hd.studentspringngapp.dtos.infoDTOs.*;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewPaymentDTO;
-import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfoPaymentDTO;
-import ma.dev7hd.studentspringngapp.entities.Payment;
 import ma.dev7hd.studentspringngapp.enumirat.Months;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentStatus;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentType;
@@ -104,7 +100,8 @@ public class PaymentRestController {
      * @throws IOException in case exception on uploading receipt
      */
     @PostMapping(value = "/new", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Payment> addNewPayment(NewPaymentDTO newPaymentDTO, @Parameter(description = "PDF to upload") @RequestPart(value = "file")MultipartFile file) throws IOException {
+    public ResponseEntity<InfoSavedPayment> addNewPayment(NewPaymentDTO newPaymentDTO, @Parameter(description = "PDF to upload") @RequestPart(value = "file")MultipartFile file) throws IOException {
+        System.out.println("New Payment");
         return iPaymentService.newPayment(newPaymentDTO,file);
     }
 

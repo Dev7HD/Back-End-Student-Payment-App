@@ -8,7 +8,6 @@ import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewAdminDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewStudentDTO;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfosStudentDTO;
 import ma.dev7hd.studentspringngapp.entities.PendingStudent;
-import ma.dev7hd.studentspringngapp.entities.User;
 import ma.dev7hd.studentspringngapp.enumirat.DepartmentName;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
 import ma.dev7hd.studentspringngapp.services.IUserService;
@@ -83,7 +82,7 @@ public class UserRestController {
      * @return ResponseEntity<String>
      */
     @DeleteMapping("/delete")
-    public ResponseEntity<User> deleteUserByEmail(@RequestBody String email) {
+    public ResponseEntity<String> deleteUserByEmail(String email) {
         return iUserService.deleteUserByEmail(email);
     }
 
@@ -204,34 +203,14 @@ public class UserRestController {
         return iUserService.getPendingStudent();
     }
 
-    @PutMapping("/expire-credentials")
-    ResponseEntity<String> expireUserCredentials(String email){
-        return iUserService.expireUserCredentials(email);
-    }
-
-    @PutMapping("/lock-account")
-    ResponseEntity<String> lockUserAccount(String email){
-        return iUserService.lockUserAccount(email);
-    }
-
-    @PutMapping("/disable-account")
-    ResponseEntity<String> disableUserAccount(String email){
-        return iUserService.disableUserAccount(email);
-    }
-
-    @PutMapping("/unlock-account")
-    ResponseEntity<String> unlockUserAccount(String email){
-        return iUserService.unlockUserAccount(email);
-    }
-
-    @PutMapping("/enable-account")
-    ResponseEntity<String> enableUserAccount(String email){
-        return iUserService.enableUserAccount(email);
-    }
-
     @GetMapping("/student/count-by-program")
     public Map<ProgramID, List<Double>> getProgramIdCounts(){
         return iUserService.getProgramIdCounts();
+    }
+
+    @PatchMapping("/toggle-account-status")
+    ResponseEntity<String> toggleEnableUserAccount(String email){
+        return iUserService.toggleEnableUserAccount(email);
     }
 
 }

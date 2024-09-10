@@ -10,14 +10,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter @Setter
-@Builder
-public class BlacklistedToken {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private UUID id;
-    @Lob
-    @Column(unique = true, nullable = false, updatable = false, columnDefinition = "TEXT")
-    private String token;
+public class BlacklistedToken extends Token {
     @Column(unique = true, nullable = false, updatable = false)
     private Instant blacklistedAt;
 }

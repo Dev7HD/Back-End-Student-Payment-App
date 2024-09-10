@@ -1,4 +1,4 @@
-package ma.dev7hd.studentspringngapp.metier.student;
+package ma.dev7hd.studentspringngapp.metier.user;
 
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfosAdminDTO;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfosStudentDTO;
@@ -7,7 +7,6 @@ import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewPendingStudentDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewStudentDTO;
 import ma.dev7hd.studentspringngapp.dtos.otherDTOs.ChangePWDTO;
 import ma.dev7hd.studentspringngapp.entities.PendingStudent;
-import ma.dev7hd.studentspringngapp.entities.User;
 import ma.dev7hd.studentspringngapp.enumirat.DepartmentName;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
 import org.jetbrains.annotations.NotNull;
@@ -18,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface IUserMetier {
-    ResponseEntity<User> deleteUser(String email);
+    ResponseEntity<String> deleteUser(String email);
 
     List<InfosStudentDTO> getAllStudents();
 
@@ -48,15 +47,8 @@ public interface IUserMetier {
 
     ResponseEntity<String> declineStudentRegistration(@NotNull String email);
 
-    ResponseEntity<String> expireUserCredentials(String email);
 
-    ResponseEntity<String> lockUserAccount(String email);
-
-    ResponseEntity<String> disableUserAccount(String email);
-
-    ResponseEntity<String> unlockUserAccount(String email);
-
-    ResponseEntity<String> enableUserAccount(String email);
+    ResponseEntity<String> toggleEnableUserAccount(String email);
 
     ResponseEntity<String> banStudentRegistration(@NotNull String email);
 

@@ -8,10 +8,9 @@ import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewAdminDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewStudentDTO;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfosStudentDTO;
 import ma.dev7hd.studentspringngapp.entities.PendingStudent;
-import ma.dev7hd.studentspringngapp.entities.User;
 import ma.dev7hd.studentspringngapp.enumirat.DepartmentName;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
-import ma.dev7hd.studentspringngapp.metier.student.IUserMetier;
+import ma.dev7hd.studentspringngapp.metier.user.IUserMetier;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +27,7 @@ public class UserService implements IUserService {
     private final IUserMetier userMetier;
 
     @Override
-    public ResponseEntity<User> deleteUserByEmail(String email) {
+    public ResponseEntity<String> deleteUserByEmail(String email) {
         return userMetier.deleteUser(email);
     }
 
@@ -118,32 +117,12 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public ResponseEntity<String> expireUserCredentials(String email){
-        return userMetier.expireUserCredentials(email);
-    }
-
-    @Override
-    public ResponseEntity<String> lockUserAccount(String email){
-        return userMetier.lockUserAccount(email);
-    }
-
-    @Override
-    public ResponseEntity<String> disableUserAccount(String email){
-        return userMetier.disableUserAccount(email);
-    }
-
-    @Override
-    public ResponseEntity<String> unlockUserAccount(String email){
-        return userMetier.unlockUserAccount(email);
-    }
-
-    @Override
-    public ResponseEntity<String> enableUserAccount(String email){
-        return userMetier.enableUserAccount(email);
-    }
-
-    @Override
     public Map<ProgramID, List<Double>> getProgramIdCounts(){
         return userMetier.getProgramIdCounts();
+    }
+
+    @Override
+    public ResponseEntity<String> toggleEnableUserAccount(String email){
+        return userMetier.toggleEnableUserAccount(email);
     }
 }

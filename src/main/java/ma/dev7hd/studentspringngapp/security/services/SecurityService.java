@@ -26,11 +26,10 @@ public class SecurityService implements ISecurityService {
     public ResponseEntity<?> login(String username, String password) {
         try{
             Map<String, String> jwt = jwtProvider.getJWT(username, password);
-            UserTokens userTokens = UserTokens.builder()
-                    .token(jwt.get("access_token"))
-                    .email(username)
-                    .loginTime(Instant.now())
-                    .build();
+            UserTokens userTokens = new UserTokens();
+            userTokens.setToken(jwt.get("access_token"));
+            userTokens.setEmail(username);
+            userTokens.setLoginTime(Instant.now());
             tokensRepository.save(userTokens);
             return ResponseEntity.ok(jwt);
         } catch (BadCredentialsException e){

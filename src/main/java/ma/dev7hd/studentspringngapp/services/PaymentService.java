@@ -1,12 +1,8 @@
 package ma.dev7hd.studentspringngapp.services;
 
 import lombok.AllArgsConstructor;
-import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfoAdminPaymentDTO;
-import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfoStatusChangesDTO;
-import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfoStudentPaymentDTO;
+import ma.dev7hd.studentspringngapp.dtos.infoDTOs.*;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewPaymentDTO;
-import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfoPaymentDTO;
-import ma.dev7hd.studentspringngapp.entities.Payment;
 import ma.dev7hd.studentspringngapp.enumirat.Months;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentStatus;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentType;
@@ -39,8 +35,8 @@ public class PaymentService implements IPaymentService {
     }
 
     @Override
-    public ResponseEntity<Payment> newPayment(NewPaymentDTO newPaymentDTO,
-                                              MultipartFile file) throws IOException {
+    public ResponseEntity<InfoSavedPayment> newPayment(NewPaymentDTO newPaymentDTO,
+                                                       MultipartFile file) throws IOException {
         return paymentMetier.saveNewPayment(newPaymentDTO, file);
     }
 

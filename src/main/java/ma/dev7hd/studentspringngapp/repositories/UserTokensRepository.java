@@ -10,7 +10,7 @@ import java.util.UUID;
 
 public interface UserTokensRepository extends JpaRepository<UserTokens, UUID> {
     Optional<List<UserTokens>> findByEmail(String email);
-    void deleteAllByToken(String token);
+    void deleteAllByTokenHash(String token);
     void deleteAllByLoginTimeLessThan(Instant day);
-    Optional<UserTokens> findByToken(String token);
+    Optional<UserTokens> findByTokenHash(String tokenHash);
 }

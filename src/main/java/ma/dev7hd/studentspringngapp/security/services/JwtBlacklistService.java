@@ -2,6 +2,7 @@ package ma.dev7hd.studentspringngapp.security.services;
 
 import lombok.AllArgsConstructor;
 import ma.dev7hd.studentspringngapp.entities.BlacklistedToken;
+import ma.dev7hd.studentspringngapp.entities.Token;
 import ma.dev7hd.studentspringngapp.repositories.BlacklistedTokenRepository;
 import ma.dev7hd.studentspringngapp.repositories.UserTokensRepository;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -19,19 +20,18 @@ public class JwtBlacklistService implements IJwtBlacklistService {
 
     @Override
     public void blacklistToken(String token) {
-        if (!blacklistedTokenRepository.existsByToken(token)) {
-            BlacklistedToken blacklistedToken = BlacklistedToken.builder()
-                    .token(token)
-                    .blacklistedAt(Instant.now())
-                    .build();
+        if (!blacklistedTokenRepository.existsByTokenHash(Token.hashToken(token))) {
+            BlacklistedToken blacklistedToken = new BlacklistedToken();
+            blacklistedToken.setToken(token);
+            blacklistedToken.setBlacklistedAt(Instant.now());
             blacklistedTokenRepository.save(blacklistedToken);
-            userTokensRepository.deleteAllByToken(token);
+            userTokensRepository.deleteAllByTokenHash(Token.hashToken(token));
         }
     }
 
     @Override
     public boolean isTokenBlacklisted(String token) {
-        return blacklistedTokenRepository.existsByToken(token);
+        return blacklistedTokenRepository.existsByTokenHash(Token.hashToken(token));
     }
 
     @Override

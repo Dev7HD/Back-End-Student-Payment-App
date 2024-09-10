@@ -8,6 +8,7 @@ import ma.dev7hd.studentspringngapp.enumirat.Months;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentStatus;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentType;
 import ma.dev7hd.studentspringngapp.repositories.*;
+import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -44,16 +45,14 @@ public class PaymentMetier implements IPaymentMetier {
     private static final Path PAYMENTS_FOLDER_PATH = Paths.get(System.getProperty("user.home"), "data", "payments");
 
     @Override
-    public ResponseEntity<Payment> saveNewPayment(NewPaymentDTO newPaymentDTO,
-                                                  @org.jetbrains.annotations.NotNull MultipartFile file) throws IOException {
+    public ResponseEntity<InfoSavedPayment> saveNewPayment(NewPaymentDTO newPaymentDTO,
+                                                           @NotNull MultipartFile file) throws IOException {
         if (!Objects.equals(file.getContentType(), MediaType.APPLICATION_PDF_VALUE)) {
             return ResponseEntity.badRequest().build();
         }
 
-        // User who want to save the new payment
         Optional<User> optionalLoggedInUser = getCurrentUser();
 
-        // Student who made the payment
         Optional<Student> optionalStudent = studentRepository.findStudentByCode(newPaymentDTO.getStudentCode());
 
         if (optionalStudent.isPresent() && optionalLoggedInUser.isPresent()) {
@@ -63,7 +62,8 @@ public class PaymentMetier implements IPaymentMetier {
             if (filePath != null) {
                 Payment payment = buildPayment(newPaymentDTO, student, user, filePath.toString());
                 paymentRepository.save(payment);
-                return ResponseEntity.ok(payment);
+                InfoSavedPayment savedPayment = modelMapper.map(payment, InfoSavedPayment.class);
+                return ResponseEntity.ok(savedPayment);
             } else {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
             }
@@ -211,6 +211,7 @@ public class PaymentMetier implements IPaymentMetier {
             paymentRepository.save(payment);
 
             InfoPaymentDTO infoPaymentDTO = modelMapper.map(payment, InfoPaymentDTO.class);
+            infoPaymentDTO.setAddedBy(payment.getAddedBy().getEmail());
             return ResponseEntity.ok(infoPaymentDTO);
         }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();

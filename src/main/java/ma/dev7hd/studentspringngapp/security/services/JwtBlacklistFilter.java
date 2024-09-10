@@ -5,6 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
+import ma.dev7hd.studentspringngapp.entities.UserTokens;
 import ma.dev7hd.studentspringngapp.repositories.UserTokensRepository;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.security.core.Authentication;
@@ -57,7 +58,7 @@ public class JwtBlacklistFilter extends OncePerRequestFilter {
             return;
         }
 
-        if (userTokensRepository.findByToken(token).isEmpty()) {
+        if (userTokensRepository.findByTokenHash(UserTokens.hashToken(token)).isEmpty()) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("Try to login again.");
             return;

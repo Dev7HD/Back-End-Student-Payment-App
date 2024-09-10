@@ -15,10 +15,6 @@ public class SwaggerConfig {
     @Bean
     public OpenAPI customOpenAPI() {
 
-        System.out.println("******************************************");
-        System.out.println("*****************SWAGGER******************");
-        System.out.println("******************************************");
-
         return new OpenAPI()
                 .info(new Info().title("JavaInUse Authentication Service"))
                 .addSecurityItem(new SecurityRequirement().addList("JavaInUseSecurityScheme"))

@@ -13,8 +13,8 @@ import java.util.List;
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "ROLE")
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
 @Builder
@@ -29,13 +29,10 @@ public class User implements UserDetails {
     private String lastName;
 
     @Column(nullable = false)
-    private boolean accountNonExpired;
-    @Column(nullable = false)
-    private boolean accountNonLocked;
-    @Column(nullable = false)
-    private boolean credentialsNonExpired;
-    @Column(nullable = false)
     private boolean enabled;
+
+    @Column(nullable = false)
+    private boolean passwordChanged;
 
     @Column(nullable = false)
     private String password;
@@ -61,17 +58,17 @@ public class User implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return accountNonExpired;
+        return true;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return accountNonLocked;
+        return true;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return accountNonExpired;
+        return true;
     }
 
     @Override
