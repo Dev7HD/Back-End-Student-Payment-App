@@ -34,7 +34,7 @@ public class JwtBlacklistFilter extends OncePerRequestFilter {
     private static final String[] WHITE_LIST_URL = { "/api/v1/auth/", "/v2/api-docs", "/v3/api-docs",
             "/v3/api-docs/", "/swagger-resources", "/swagger-resources/", "/configuration/ui",
             "/configuration/security", "/swagger-ui/", "/webjars/", "/swagger-ui.html", "/api/auth/",
-            "/api/test/", "/authenticate", "/auth/login", "/user/register" };
+            "/api/test/", "/authenticate", "/auth/login", "/user/register", "/ws" };
     private final UserTokensRepository userTokensRepository;
 
     @Override
@@ -50,6 +50,13 @@ public class JwtBlacklistFilter extends OncePerRequestFilter {
                 chain.doFilter(request, response);
                 return;
             }
+        }
+
+        if (token == null) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Token error!");
+            System.out.println("Token error!");
+            return;
         }
 
         if (jwtBlacklistService.isTokenBlacklisted(token)) {

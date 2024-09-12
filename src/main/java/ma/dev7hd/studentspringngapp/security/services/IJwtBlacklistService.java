@@ -7,8 +7,9 @@ public interface IJwtBlacklistService {
 
     boolean isTokenBlacklisted(String token);
 
-    void removeTokenFromBlacklist(String token);
-
     @Scheduled(fixedRate = 86400000)
     void emptyBlacklistTokens();
+
+    @Scheduled(fixedRate = 60000)
+    void emptyUserTokens();
 }

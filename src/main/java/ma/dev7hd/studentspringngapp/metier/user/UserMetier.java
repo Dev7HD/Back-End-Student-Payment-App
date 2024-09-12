@@ -3,6 +3,7 @@ package ma.dev7hd.studentspringngapp.metier.user;
 import lombok.AllArgsConstructor;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfosAdminDTO;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfosStudentDTO;
+import ma.dev7hd.studentspringngapp.dtos.infoDTOs.PendingUserDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewAdminDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewStudentDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewPendingStudentDTO;
@@ -12,6 +13,7 @@ import ma.dev7hd.studentspringngapp.enumirat.DepartmentName;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
 import ma.dev7hd.studentspringngapp.repositories.*;
 import ma.dev7hd.studentspringngapp.security.services.ISecurityService;
+import ma.dev7hd.studentspringngapp.websoket.config.WebSocketService;
 import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -42,6 +44,7 @@ public class UserMetier implements IUserMetier {
     private final ModelMapper modelMapper;
     private final PendingStudentRepository pendingStudentRepository;
     private final BanedRegistrationRepository banedRegistrationRepository;
+    private final WebSocketService webSocketService;
 
     private final String defaultPassword = "123456";
 
@@ -169,7 +172,9 @@ public class UserMetier implements IUserMetier {
         }
         PendingStudent pendingStudent = convertPendingStudentToDto(pendingStudentDTO);
         pendingStudent.setRegisterDate(Instant.now());
-        pendingStudentRepository.save(pendingStudent);
+        PendingStudent savedPendingStudent = pendingStudentRepository.save(pendingStudent);
+        PendingUserDTO pendingUserDTO = modelMapper.map(savedPendingStudent, PendingUserDTO.class);
+        webSocketService.sendToSpecificUser("/notifications/pending-registration", pendingUserDTO);
         return ResponseEntity.ok().body("The registration was successful.");
     }
 

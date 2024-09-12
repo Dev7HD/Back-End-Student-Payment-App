@@ -1,5 +1,6 @@
 package ma.dev7hd.studentspringngapp.security.services;
 
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import ma.dev7hd.studentspringngapp.entities.BlacklistedToken;
 import ma.dev7hd.studentspringngapp.entities.Token;
@@ -10,8 +11,10 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Date;
 
 @Service
+@Transactional
 @AllArgsConstructor
 public class JwtBlacklistService implements IJwtBlacklistService {
     private final BlacklistedTokenRepository blacklistedTokenRepository;
@@ -23,9 +26,11 @@ public class JwtBlacklistService implements IJwtBlacklistService {
         if (!blacklistedTokenRepository.existsByTokenHash(Token.hashToken(token))) {
             BlacklistedToken blacklistedToken = new BlacklistedToken();
             blacklistedToken.setToken(token);
-            blacklistedToken.setBlacklistedAt(Instant.now());
+            blacklistedToken.setBlacklistedAt(new Date());
+            System.out.println("BLACKLISTING USER TOKENS!!!!");
             blacklistedTokenRepository.save(blacklistedToken);
-            userTokensRepository.deleteAllByTokenHash(Token.hashToken(token));
+            System.out.println("DELETE USER TOKENS!!!!");
+            userTokensRepository.deleteByTokenHash(Token.hashToken(token));
         }
     }
 
@@ -34,18 +39,19 @@ public class JwtBlacklistService implements IJwtBlacklistService {
         return blacklistedTokenRepository.existsByTokenHash(Token.hashToken(token));
     }
 
-    @Override
-    public void removeTokenFromBlacklist(String token) {
-        blacklistedTokenRepository.deleteById(token);
-    }
-
-    @Scheduled(fixedRate = 86400000)
+    @Scheduled(fixedRate = 60000)
     @Override
     public void emptyBlacklistTokens(){
-        Instant day = Instant.now().minus(24, ChronoUnit.HOURS);
+        Date day = new Date(Instant.now().minus(24, ChronoUnit.HOURS).toEpochMilli());
+        System.out.println("Removing Old blacklisted tokens (Older then 24 hours)....");
         blacklistedTokenRepository.deleteAllByBlacklistedAtLessThan(day);
-        System.out.println("Old blacklisted tokens removed (Older then 24 hours)");
+    }
+
+    @Scheduled(fixedRate = 60000)
+    @Override
+    public void emptyUserTokens(){
+        Date day = new Date(Instant.now().minus(24, ChronoUnit.HOURS).toEpochMilli());
+        System.out.println("Removing expired login tokens (Older then 24 hours)...");
         userTokensRepository.deleteAllByLoginTimeLessThan(day);
-        System.out.println("Expired login tokens removed (Older then 24 hours)");
     }
 }

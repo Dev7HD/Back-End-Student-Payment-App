@@ -40,7 +40,7 @@ public class Student extends User {
 
         List<Double> values = programIDCounter.getOrDefault(programID, new ArrayList<>(Arrays.asList(0.0, 0.0)));
 
-        double updatedTotal = values.getFirst() + differenceValue;
+        double updatedTotal = values.get(0) + differenceValue;
         values.set(0, updatedTotal);
 
         double updatedPercentage = updatedTotal / totalStudents;
@@ -51,7 +51,7 @@ public class Student extends User {
         for (ProgramID otherProgramID : ProgramID.values()) {
             if (!programID.equals(otherProgramID)) {
                 programIDCounter.computeIfPresent(otherProgramID, (k, valuesList) -> {
-                    double totalForOtherProgram = valuesList.getFirst();
+                    double totalForOtherProgram = valuesList.get(0);
                     valuesList.set(1, totalForOtherProgram / totalStudents);
                     return valuesList;
                 });

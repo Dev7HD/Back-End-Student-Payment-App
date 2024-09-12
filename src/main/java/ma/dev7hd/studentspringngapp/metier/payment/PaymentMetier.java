@@ -212,6 +212,7 @@ public class PaymentMetier implements IPaymentMetier {
 
             InfoPaymentDTO infoPaymentDTO = modelMapper.map(payment, InfoPaymentDTO.class);
             infoPaymentDTO.setAddedBy(payment.getAddedBy().getEmail());
+            
             return ResponseEntity.ok(infoPaymentDTO);
         }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -271,7 +272,7 @@ public class PaymentMetier implements IPaymentMetier {
                 i++;
             }
         } else {
-            countByMonth.put(Months.values()[month - 1], counted.getFirst()[1]);
+            countByMonth.put(Months.values()[month - 1], counted.get(0)[1]);
         }
 
         return ResponseEntity.ok(countByMonth);

@@ -3,7 +3,7 @@ package ma.dev7hd.studentspringngapp.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.Instant;
+import java.util.Date;
 
 @Entity
 @AllArgsConstructor @NoArgsConstructor
@@ -14,6 +14,6 @@ public class UserTokens extends Token {
     private String email;
 
     @Column(nullable = false, updatable = false)
-    private Instant loginTime;
+    private Date loginTime;
 
 }
