@@ -199,8 +199,10 @@ public class UserRestController {
     }
 
     @GetMapping("/pending-students")
-    public List<PendingStudent> getPendingStudents(){
-        return iUserService.getPendingStudent();
+    public Page<PendingStudent> getPendingStudents(@RequestParam(required = false) String email,
+                                                   @RequestParam(defaultValue = "0") int page,
+                                                   @RequestParam(defaultValue = "10") int size){
+        return iUserService.getPendingStudent(email, page, size);
     }
 
     @GetMapping("/student/count-by-program")

@@ -11,4 +11,6 @@ public class PendingUserDTO {
     String firstName;
     String lastName;
     Date registerDate;
+    String message;
+    boolean seen;
 }

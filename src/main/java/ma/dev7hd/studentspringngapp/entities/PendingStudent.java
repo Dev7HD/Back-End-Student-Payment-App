@@ -5,6 +5,7 @@ import lombok.*;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
 
 import java.time.Instant;
+import java.util.Date;
 
 @Entity
 @AllArgsConstructor @NoArgsConstructor
@@ -20,7 +21,7 @@ public class PendingStudent {
     String lastName;
 
     @Column(nullable = false, updatable = false)
-    Instant registerDate;
+    Date registerDate;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, updatable = false)
@@ -28,4 +29,6 @@ public class PendingStudent {
 
     @Column(nullable = false, updatable = false, unique = true)
     String code;
+
+    boolean seen;
 }

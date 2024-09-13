@@ -112,8 +112,8 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public List<PendingStudent> getPendingStudent(){
-        return userMetier.getPendingStudents();
+    public Page<PendingStudent> getPendingStudent(String email, int page, int size){
+        return userMetier.getPendingStudents(email, page, size);
     }
 
     @Override

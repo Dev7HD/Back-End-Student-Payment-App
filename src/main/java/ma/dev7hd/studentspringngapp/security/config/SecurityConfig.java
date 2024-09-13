@@ -38,8 +38,8 @@ public class SecurityConfig {
 
     private static final String[] WHITE_LIST_URL = { "/api/v1/auth/**", "/v2/api-docs", "/v3/api-docs",
             "/v3/api-docs/**", "/swagger-resources", "/swagger-resources/**", "/configuration/ui",
-            "/configuration/security", "/swagger-ui/**", "/webjars/**", "/swagger-ui.html", "/api/auth/**",
-            "/api/test/**", "/authenticate", "/auth/login", "/user/register", "/ws" };
+            "/configuration/security", "/swagger-ui", "/webjars/**", "/swagger-ui.html", "/api/auth",
+            "/api/test", "/authenticate", "/auth/login", "/user/register", "/ws", "/ws/info" };
 
     private final CustomUserDetailsService userDetailsService;
     private final JwtBlacklistFilter jwtBlacklistFilter;

@@ -51,7 +51,7 @@ public interface IUserService {
 
     ResponseEntity<String> banStudentRegistration(@NotNull String email);
 
-    List<PendingStudent> getPendingStudent();
+    Page<PendingStudent> getPendingStudent(String email, int page, int size);
 
     Map<ProgramID, List<Double>> getProgramIdCounts();
 

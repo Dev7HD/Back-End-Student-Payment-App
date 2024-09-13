@@ -50,9 +50,11 @@ public interface IUserMetier {
 
     ResponseEntity<String> toggleEnableUserAccount(String email);
 
+    void onLoginNotifications();
+
     ResponseEntity<String> banStudentRegistration(@NotNull String email);
 
-    List<PendingStudent> getPendingStudents();
+    Page<PendingStudent> getPendingStudents(String email, int page, int size);
 
     ResponseEntity<InfosStudentDTO> updateStudentInfo(@NotNull InfosStudentDTO studentDTO);
 
