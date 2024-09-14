@@ -56,4 +56,8 @@ public interface IUserService {
     Map<ProgramID, List<Double>> getProgramIdCounts();
 
     ResponseEntity<String> toggleEnableUserAccount(String email);
+
+    Page<PendingStudent> getPendingStudent(String email, boolean isSeen, int page, int size);
+
+    void onLoginNotifications();
 }

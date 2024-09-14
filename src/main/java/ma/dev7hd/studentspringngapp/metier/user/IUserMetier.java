@@ -43,6 +43,10 @@ public interface IUserMetier {
 
     ResponseEntity<String> registerStudent(NewPendingStudentDTO pendingStudentDTO);
 
+    Page<PendingStudent> getPendingStudent(String email, boolean isSeen, int page, int size);
+
+    void onLoginNotifications();
+
     ResponseEntity<?> approvingStudentRegistration(@NotNull String email);
 
     ResponseEntity<String> declineStudentRegistration(@NotNull String email);

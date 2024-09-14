@@ -125,4 +125,14 @@ public class UserService implements IUserService {
     public ResponseEntity<String> toggleEnableUserAccount(String email){
         return userMetier.toggleEnableUserAccount(email);
     }
+
+    @Override
+    public Page<PendingStudent> getPendingStudent(String email, boolean isSeen, int page, int size){
+        return userMetier.getPendingStudent(email, isSeen, page, size);
+    }
+
+    @Override
+    public void onLoginNotifications(){
+        userMetier.onLoginNotifications();
+    }
 }

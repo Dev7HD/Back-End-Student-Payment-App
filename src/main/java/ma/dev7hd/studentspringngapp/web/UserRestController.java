@@ -11,6 +11,7 @@ import ma.dev7hd.studentspringngapp.entities.PendingStudent;
 import ma.dev7hd.studentspringngapp.enumirat.DepartmentName;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
 import ma.dev7hd.studentspringngapp.services.IUserService;
+import ma.dev7hd.studentspringngapp.services.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,7 @@ import java.util.Map;
 @RequestMapping("/user")
 public class UserRestController {
     private final IUserService iUserService;
+    private final UserService userService;
 
     /**
      * Get all students
@@ -198,12 +200,10 @@ public class UserRestController {
         return iUserService.banStudentRegistration(email);
     }
 
-    @GetMapping("/pending-students")
-    public Page<PendingStudent> getPendingStudents(@RequestParam(required = false) String email,
-                                                   @RequestParam(defaultValue = "0") int page,
-                                                   @RequestParam(defaultValue = "10") int size){
-        return iUserService.getPendingStudent(email, page, size);
-    }
+    /*@GetMapping("/pending-students")
+    public List<PendingStudent> getPendingStudents(){
+        return iUserService.getPendingStudent();
+    }*/
 
     @GetMapping("/student/count-by-program")
     public Map<ProgramID, List<Double>> getProgramIdCounts(){
@@ -215,4 +215,17 @@ public class UserRestController {
         return iUserService.toggleEnableUserAccount(email);
     }
 
+    @GetMapping("/pending-students")
+    public Page<PendingStudent> getPendingStudent(
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) boolean isSeen,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size){
+        return iUserService.getPendingStudent(email, isSeen, page, size);
+    }
+
+    @GetMapping("/on-login-notifications")
+    public void onLoginNotifications(){
+        iUserService.onLoginNotifications();
+    }
 }

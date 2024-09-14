@@ -7,10 +7,10 @@ import java.util.Date;
 
 @Getter @Setter
 public class PendingUserDTO {
-    String email;
-    String firstName;
-    String lastName;
-    Date registerDate;
-    String message;
-    boolean seen;
+    private String email;
+    private String firstName;
+    private String lastName;
+    private Date registerDate;
+    private boolean seen;
+    private String message;
 }

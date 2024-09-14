@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
 
-import java.time.Instant;
 import java.util.Date;
 
 @Entity
@@ -13,22 +12,23 @@ import java.util.Date;
 @Builder
 public class PendingStudent {
     @Id
-    String email;
+    private String email;
     @Column(nullable = false, updatable = false)
-    String firstName;
+    private String firstName;
 
     @Column(nullable = false, updatable = false)
-    String lastName;
+    private String lastName;
 
     @Column(nullable = false, updatable = false)
-    Date registerDate;
+    private Date registerDate;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, updatable = false)
-    ProgramID programID;
+    private ProgramID programID;
 
     @Column(nullable = false, updatable = false, unique = true)
-    String code;
+    private String code;
 
-    boolean seen;
+    @Column(nullable = false)
+    private boolean seen;
 }

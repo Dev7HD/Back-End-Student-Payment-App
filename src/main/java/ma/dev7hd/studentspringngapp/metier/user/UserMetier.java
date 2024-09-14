@@ -29,7 +29,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 @Service
 @AllArgsConstructor
@@ -173,11 +172,38 @@ public class UserMetier implements IUserMetier {
             return ResponseEntity.badRequest().body("Email or Code already in use or banned");
         }
         PendingStudent pendingStudent = convertPendingStudentToDto(pendingStudentDTO);
+        pendingStudent.setRegisterDate(new Date());
+        pendingStudent.setSeen(false);
         PendingStudent savedPendingStudent = pendingStudentRepository.save(pendingStudent);
         PendingUserDTO pendingUserDTO = modelMapper.map(savedPendingStudent, PendingUserDTO.class);
-        pendingUserDTO.setMessage(pendingStudent.getLastName() + " " + pendingStudent.getFirstName() + " made new registration.");
+        String message = savedPendingStudent.getFirstName() + " " + savedPendingStudent.getLastName() + " made a new registration need to be processed.";
+        pendingUserDTO.setMessage(message);
         webSocketService.sendToSpecificUser("/notifications/pending-registration", pendingUserDTO);
         return ResponseEntity.ok().body("The registration was successful.");
+    }
+
+    @Override
+    public Page<PendingStudent> getPendingStudent(String email, boolean isSeen, int page, int size){
+        Page<PendingStudent> pendingStudents = pendingStudentRepository.findByPendingStudentsByFilter(email, isSeen, PageRequest.of(page, size));
+        pendingStudents.forEach(pendingStudent -> {
+            pendingStudent.setSeen(true);
+            pendingStudentRepository.save(pendingStudent);
+        });
+        return pendingStudents;
+    }
+
+    @Override
+    public void onLoginNotifications(){
+        List<PendingStudent> pendingStudents = pendingStudentRepository.findAllBySeen(false);
+
+        pendingStudents.forEach(pendingStudent -> {
+            PendingUserDTO pendingUserDTO = modelMapper.map(pendingStudent, PendingUserDTO.class);
+            String message = pendingStudent.getFirstName() + " " + pendingStudent.getLastName() + " made a new registration need to be processed.";
+            pendingUserDTO.setMessage(message);
+            webSocketService.sendToSpecificUser("/notifications/pending-registration", pendingUserDTO);
+        });
+
+
     }
 
     @Override
@@ -227,18 +253,6 @@ public class UserMetier implements IUserMetier {
     }
 
     @Override
-    public void onLoginNotifications(){
-        List<PendingStudent> pendingStudents = pendingStudentRepository.findAllBySeen(false);
-        if (!pendingStudents.isEmpty()){
-            pendingStudents.forEach(pendingStudent -> {
-                PendingUserDTO pendingUserDTO = modelMapper.map(pendingStudent, PendingUserDTO.class);
-                pendingUserDTO.setMessage(pendingStudent.getLastName() + " " + pendingStudent.getFirstName() + " made new registration.");
-                webSocketService.sendToSpecificUser("/notifications/pending-registration", pendingUserDTO);
-            });
-        }
-    }
-
-    @Override
     public ResponseEntity<String> banStudentRegistration(@NotNull String email){
         Optional<PendingStudent> optionalPendingStudent = pendingStudentRepository.findById(email);
         if (optionalPendingStudent.isPresent()) {
@@ -255,13 +269,8 @@ public class UserMetier implements IUserMetier {
     }
 
     @Override
-    public Page<PendingStudent> getPendingStudents(String email, int page, int size){
-        Page<PendingStudent> pendingStudent = pendingStudentRepository.findPendingStudent(email, PageRequest.of(page, size));
-        pendingStudent.forEach(s -> {
-            s.setSeen(true);
-            pendingStudentRepository.save(s);
-        });
-        return pendingStudent;
+    public List<PendingStudent> getPendingStudents(){
+        return pendingStudentRepository.findAll();
     }
 
     @Override
@@ -312,9 +321,7 @@ public class UserMetier implements IUserMetier {
     }
 
     private PendingStudent convertPendingStudentToDto(NewPendingStudentDTO pendingStudentDTO) {
-        PendingStudent pendingStudent = modelMapper.map(pendingStudentDTO, PendingStudent.class);
-        pendingStudent.setRegisterDate(new Date());
-        return pendingStudent;
+        return modelMapper.map(pendingStudentDTO, PendingStudent.class);
     }
 
     private Student convertPendingStudentToStudent(PendingStudent pendingStudent) {
