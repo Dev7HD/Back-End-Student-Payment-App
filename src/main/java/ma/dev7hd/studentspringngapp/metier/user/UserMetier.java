@@ -24,7 +24,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -53,10 +52,6 @@ public class UserMetier implements IUserMetier {
         Optional<User> optionalUser = userRepository.findById(email);
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
-            /*if(user instanceof Student) {
-                Student.updateProgramCountsFromDB(((Student) user).getProgramId(), -1.0);
-                paymentRepository.deleteByStudentCode(((Student) user).getCode());
-            }*/
             userRepository.delete(user);
             return ResponseEntity.ok().body("User deleted successfully");
         } else {
@@ -186,6 +181,14 @@ public class UserMetier implements IUserMetier {
     }
 
     @Override
+    public void markAsReadAllPendingStudents(){
+        List<PendingStudent> pendingStudents = pendingStudentRepository.findAllBySeen(false);
+        if(!pendingStudents.isEmpty()){
+            pendingStudents.forEach(this::seenPendingStudent);
+        }
+    }
+
+    @Override
     public ResponseEntity<PendingStudent> getPendingStudentByEmail(String email){
         Optional<PendingStudent> optionalPendingStudent = pendingStudentRepository.findById(email);
         if (optionalPendingStudent.isPresent()) {
@@ -248,20 +251,23 @@ public class UserMetier implements IUserMetier {
         return ResponseEntity.badRequest().body("Email is not correct.");
     }
 
+    @Transactional
     @Override
     public ResponseEntity<String> banStudentRegistration(@NotNull String email){
         Optional<PendingStudent> optionalPendingStudent = pendingStudentRepository.findById(email);
-        if (optionalPendingStudent.isPresent()) {
+        Optional<User> optionalUser = userRepository.findById(getCurrentUserEmail());
+        if (optionalPendingStudent.isPresent() && optionalUser.isPresent() && optionalUser.get() instanceof Admin admin) {
             PendingStudent pendingStudent = optionalPendingStudent.get();
+
             BanedRegistration banedRegistration = convertPendingStudentToBanedRegistration(pendingStudent);
-            banedRegistration.setBanDate(Instant.now());
-            Optional<Admin> admin = adminRepository.findById(getCurrentUserEmail());
-            admin.ifPresent(banedRegistration::setAdminBanner);
+            banedRegistration.setBanDate(new Date());
+            banedRegistration.setAdminBanner(admin);
+
             banedRegistrationRepository.save(banedRegistration);
             pendingStudentRepository.delete(pendingStudent);
             return ResponseEntity.ok().body("The registration was banned successfully.");
         }
-        return ResponseEntity.badRequest().body("Email is not correct.");
+        return ResponseEntity.badRequest().build();
     }
 
     @Override

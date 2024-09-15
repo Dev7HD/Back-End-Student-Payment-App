@@ -60,5 +60,7 @@ public interface IUserMetier {
 
     Map<ProgramID, List<Double>> getProgramIdCounts();
 
+    void markAsReadAllPendingStudents();
+
     ResponseEntity<PendingStudent> getPendingStudentByEmail(String email);
 }

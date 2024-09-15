@@ -12,6 +12,7 @@ import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -60,4 +61,8 @@ public interface IUserService {
     void onLoginNotifications();
 
     ResponseEntity<PendingStudent> getPendingStudentByEmail(String email);
+
+    void markAsReadAllPendingStudents();
+
+    ResponseEntity<String> uploadStudentFile(@NotNull MultipartFile file) throws Exception;
 }

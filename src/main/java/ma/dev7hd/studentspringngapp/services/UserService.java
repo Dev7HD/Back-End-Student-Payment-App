@@ -10,12 +10,14 @@ import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfosStudentDTO;
 import ma.dev7hd.studentspringngapp.entities.PendingStudent;
 import ma.dev7hd.studentspringngapp.enumirat.DepartmentName;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
+import ma.dev7hd.studentspringngapp.metier.dataFromFile.ILoadStudents;
 import ma.dev7hd.studentspringngapp.metier.user.IUserMetier;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -25,6 +27,7 @@ import java.util.Map;
 @AllArgsConstructor
 public class UserService implements IUserService {
     private final IUserMetier userMetier;
+    private final ILoadStudents processData;
 
     @Override
     public ResponseEntity<String> deleteUserByEmail(String email) {
@@ -134,5 +137,15 @@ public class UserService implements IUserService {
     @Override
     public ResponseEntity<PendingStudent> getPendingStudentByEmail(String email){
         return userMetier.getPendingStudentByEmail(email);
+    }
+
+    @Override
+    public void markAsReadAllPendingStudents(){
+        userMetier.markAsReadAllPendingStudents();
+    }
+
+    @Override
+    public ResponseEntity<String> uploadStudentFile(@NotNull MultipartFile file) throws Exception {
+        return processData.uploadStudentFile(file);
     }
 }

@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
 
-import java.time.Instant;
+import java.util.Date;
 
 @Entity
 @AllArgsConstructor
@@ -14,20 +14,20 @@ import java.time.Instant;
 @Builder
 public class BanedRegistration {
     @Id
-    String email;
+    private String email;
     @Column(nullable = false, updatable = false)
-    String firstName;
+    private String firstName;
     @Column(nullable = false, updatable = false)
-    String lastName;
+    private String lastName;
     @Column(nullable = false, updatable = false)
-    Instant registerDate;
+    private Date registerDate;
     @Column(nullable = false, updatable = false)
-    Instant banDate;
+    private Date banDate;
     @Column(nullable = false, updatable = false)
-    ProgramID programID;
+    private ProgramID programID;
     @Column(nullable = false, updatable = false)
-    String code;
+    private String code;
     @ManyToOne
     @JoinColumn(name = "admin_id", nullable = false, updatable = false)
-    Admin adminBanner;
+    private Admin adminBanner;
 }
