@@ -4,7 +4,7 @@ import lombok.*;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentStatus;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentType;
 
-import java.time.LocalDate;
+import java.util.Date;
 import java.util.UUID;
 
 @Getter
@@ -15,7 +15,7 @@ import java.util.UUID;
 public class InfoPaymentDTO {
     private UUID id;
     private double amount;
-    private LocalDate date;
+    private Date date;
     private PaymentType type;
     private PaymentStatus status;
     private String receipt;

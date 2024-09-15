@@ -11,7 +11,6 @@ import ma.dev7hd.studentspringngapp.entities.PendingStudent;
 import ma.dev7hd.studentspringngapp.enumirat.DepartmentName;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
 import ma.dev7hd.studentspringngapp.services.IUserService;
-import ma.dev7hd.studentspringngapp.services.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +24,6 @@ import java.util.Map;
 @RequestMapping("/user")
 public class UserRestController {
     private final IUserService iUserService;
-    private final UserService userService;
 
     /**
      * Get all students
@@ -218,10 +216,10 @@ public class UserRestController {
     @GetMapping("/pending-students")
     public Page<PendingStudent> getPendingStudent(
             @RequestParam(required = false) String email,
-            @RequestParam(required = false) boolean isSeen,
+            @RequestParam(required = false) boolean seen,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size){
-        return iUserService.getPendingStudent(email, isSeen, page, size);
+        return iUserService.getPendingStudent(email, seen, page, size);
     }
 
     @GetMapping("/on-login-notifications")

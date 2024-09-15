@@ -83,7 +83,7 @@ public class StudentSpringNgAppApplication {
                     Payment payment = Payment.builder()
                             .amount((int) (random * 10000))
                             .student(student1)
-                            .date(LocalDate.of(2024, Month.of(i+1), 5))
+                            .date(Date.of(2024, Month.of(i+1), 5))
                             .type(random >= 0.75 ? PaymentType.CASH : random >= 0.5 ? PaymentType.CHECK : random >= 0.25 ? PaymentType.DEPOSIT : PaymentType.TRANSFER)
                             .status(random >= 0.66 ? PaymentStatus.VALIDATED : random >= 0.33 ? PaymentStatus.CREATED : PaymentStatus.REJECTED )
                             .addedBy(student)
@@ -91,7 +91,6 @@ public class StudentSpringNgAppApplication {
                     paymentRepository.save(payment);
                 }
             });*/
-
         };
     }
 }

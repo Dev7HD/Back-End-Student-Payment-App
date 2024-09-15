@@ -36,7 +36,6 @@ import java.util.Optional;
 public class UserMetier implements IUserMetier {
 
     private final UserRepository userRepository;
-    private final PaymentRepository paymentRepository;
     private final StudentRepository studentRepository;
     private final PasswordEncoder passwordEncoder;
     private final ISecurityService securityService;
@@ -54,10 +53,10 @@ public class UserMetier implements IUserMetier {
         Optional<User> optionalUser = userRepository.findById(email);
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
-            if(user instanceof Student) {
+            /*if(user instanceof Student) {
                 Student.updateProgramCountsFromDB(((Student) user).getProgramId(), -1.0);
                 paymentRepository.deleteByStudentCode(((Student) user).getCode());
-            }
+            }*/
             userRepository.delete(user);
             return ResponseEntity.ok().body("User deleted successfully");
         } else {
@@ -175,10 +174,7 @@ public class UserMetier implements IUserMetier {
         pendingStudent.setRegisterDate(new Date());
         pendingStudent.setSeen(false);
         PendingStudent savedPendingStudent = pendingStudentRepository.save(pendingStudent);
-        PendingUserDTO pendingUserDTO = modelMapper.map(savedPendingStudent, PendingUserDTO.class);
-        String message = savedPendingStudent.getFirstName() + " " + savedPendingStudent.getLastName() + " made a new registration need to be processed.";
-        pendingUserDTO.setMessage(message);
-        webSocketService.sendToSpecificUser("/notifications/pending-registration", pendingUserDTO);
+        sendPendingStudentNotifications(savedPendingStudent);
         return ResponseEntity.ok().body("The registration was successful.");
     }
 
@@ -195,15 +191,7 @@ public class UserMetier implements IUserMetier {
     @Override
     public void onLoginNotifications(){
         List<PendingStudent> pendingStudents = pendingStudentRepository.findAllBySeen(false);
-
-        pendingStudents.forEach(pendingStudent -> {
-            PendingUserDTO pendingUserDTO = modelMapper.map(pendingStudent, PendingUserDTO.class);
-            String message = pendingStudent.getFirstName() + " " + pendingStudent.getLastName() + " made a new registration need to be processed.";
-            pendingUserDTO.setMessage(message);
-            webSocketService.sendToSpecificUser("/notifications/pending-registration", pendingUserDTO);
-        });
-
-
+        pendingStudents.forEach(this::sendPendingStudentNotifications);
     }
 
     @Override
@@ -269,11 +257,6 @@ public class UserMetier implements IUserMetier {
     }
 
     @Override
-    public List<PendingStudent> getPendingStudents(){
-        return pendingStudentRepository.findAll();
-    }
-
-    @Override
     public ResponseEntity<InfosStudentDTO> updateStudentInfo(@NotNull InfosStudentDTO studentDTO){
         Optional<Student> optionalStudent = studentRepository.findById(studentDTO.getEmail());
         if (optionalStudent.isPresent()) {
@@ -303,6 +286,13 @@ public class UserMetier implements IUserMetier {
         student.setPassword(passwordEncoder.encode(defaultPassword));
         Student.updateProgramCountsFromDB(student.getProgramId(),1.0);
         return student;
+    }
+
+    private void sendPendingStudentNotifications(PendingStudent pendingStudent){
+        PendingUserDTO pendingUserDTO = modelMapper.map(pendingStudent, PendingUserDTO.class);
+        String message = pendingStudent.getFirstName() + " " + pendingStudent.getLastName() + " made a new registration need to be processed.";
+        pendingUserDTO.setMessage(message);
+        webSocketService.sendToSpecificUser("/notifications/pending-registration", pendingUserDTO);
     }
 
     private Admin newAdminProcessing(Admin admin){

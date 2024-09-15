@@ -8,4 +8,5 @@ public class InfosUserDTO {
     private String email;
     private String firstName;
     private String lastName;
+    private boolean enabled;
 }

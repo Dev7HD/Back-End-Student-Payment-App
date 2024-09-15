@@ -13,10 +13,10 @@ public interface PendingStudentRepository extends JpaRepository<PendingStudent, 
 
     @Query("SELECT a FROM PendingStudent a WHERE " +
             "(:email IS NULL OR a.email = :email) AND " +
-            "(:isSeen IS NULL OR a.seen = :isSeen) ")
+            "(:seen IS NULL OR a.seen = :seen) ")
     Page<PendingStudent> findByPendingStudentsByFilter(
             @Param("email") String email,
-            @Param("isSeen") boolean isSeen,
+            @Param("seen") boolean seen,
             Pageable pageable);
 
     List<PendingStudent> findAllBySeen(boolean isSeen);

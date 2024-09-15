@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import ma.dev7hd.studentspringngapp.enumirat.*;
 
-import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,7 +22,7 @@ public class Payment {
 
     @Temporal(TemporalType.DATE)
     @Column(nullable = false, updatable = false)
-    private LocalDate date;
+    private Date date;
 
     @Column(nullable = false, updatable = false)
     private double amount;

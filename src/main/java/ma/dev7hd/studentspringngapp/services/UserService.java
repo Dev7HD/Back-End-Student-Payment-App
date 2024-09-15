@@ -112,11 +112,6 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public Page<PendingStudent> getPendingStudent(String email, int page, int size){
-        return userMetier.getPendingStudents(email, page, size);
-    }
-
-    @Override
     public Map<ProgramID, List<Double>> getProgramIdCounts(){
         return userMetier.getProgramIdCounts();
     }

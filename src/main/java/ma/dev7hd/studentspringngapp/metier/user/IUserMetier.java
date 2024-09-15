@@ -43,9 +43,7 @@ public interface IUserMetier {
 
     ResponseEntity<String> registerStudent(NewPendingStudentDTO pendingStudentDTO);
 
-    Page<PendingStudent> getPendingStudent(String email, boolean isSeen, int page, int size);
-
-    void onLoginNotifications();
+    Page<PendingStudent> getPendingStudent(String email, boolean seen, int page, int size);
 
     ResponseEntity<?> approvingStudentRegistration(@NotNull String email);
 
@@ -57,8 +55,6 @@ public interface IUserMetier {
     void onLoginNotifications();
 
     ResponseEntity<String> banStudentRegistration(@NotNull String email);
-
-    Page<PendingStudent> getPendingStudents(String email, int page, int size);
 
     ResponseEntity<InfosStudentDTO> updateStudentInfo(@NotNull InfosStudentDTO studentDTO);
 

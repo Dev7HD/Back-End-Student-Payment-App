@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentStatus;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.UUID;
 
 @Entity
@@ -29,7 +29,7 @@ public class PaymentStatusChange {
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false, updatable = false)
-    private LocalDateTime changeDate;
+    private Date changeDate;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, updatable = false)

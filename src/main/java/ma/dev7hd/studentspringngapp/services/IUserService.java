@@ -51,8 +51,6 @@ public interface IUserService {
 
     ResponseEntity<String> banStudentRegistration(@NotNull String email);
 
-    Page<PendingStudent> getPendingStudent(String email, int page, int size);
-
     Map<ProgramID, List<Double>> getProgramIdCounts();
 
     ResponseEntity<String> toggleEnableUserAccount(String email);

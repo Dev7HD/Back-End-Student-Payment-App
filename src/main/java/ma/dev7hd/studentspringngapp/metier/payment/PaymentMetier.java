@@ -26,7 +26,6 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -204,7 +203,7 @@ public class PaymentMetier implements IPaymentMetier {
                     .newStatus(newStatus)
                     .admin(optionalAdmin.get())
                     .payment(payment)
-                    .changeDate(LocalDateTime.now())
+                    .changeDate(new Date())
                     .build();
 
             paymentStatusChangeRepository.save(changes);

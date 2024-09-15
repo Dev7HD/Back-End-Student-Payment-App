@@ -13,6 +13,7 @@ import java.util.Date;
 public class PendingStudent {
     @Id
     private String email;
+
     @Column(nullable = false, updatable = false)
     private String firstName;
 
