@@ -181,11 +181,19 @@ public class UserMetier implements IUserMetier {
     @Override
     public Page<PendingStudent> getPendingStudent(String email, boolean isSeen, int page, int size){
         Page<PendingStudent> pendingStudents = pendingStudentRepository.findByPendingStudentsByFilter(email, isSeen, PageRequest.of(page, size));
-        pendingStudents.forEach(pendingStudent -> {
-            pendingStudent.setSeen(true);
-            pendingStudentRepository.save(pendingStudent);
-        });
+        pendingStudents.forEach(this::seenPendingStudent);
         return pendingStudents;
+    }
+
+    @Override
+    public ResponseEntity<PendingStudent> getPendingStudentByEmail(String email){
+        Optional<PendingStudent> optionalPendingStudent = pendingStudentRepository.findById(email);
+        if (optionalPendingStudent.isPresent()) {
+            PendingStudent pendingStudent = optionalPendingStudent.get();
+            seenPendingStudent(pendingStudent);
+            return ResponseEntity.ok(pendingStudent);
+        }
+        return ResponseEntity.notFound().build();
     }
 
     @Override
@@ -293,6 +301,11 @@ public class UserMetier implements IUserMetier {
         String message = pendingStudent.getFirstName() + " " + pendingStudent.getLastName() + " made a new registration need to be processed.";
         pendingUserDTO.setMessage(message);
         webSocketService.sendToSpecificUser("/notifications/pending-registration", pendingUserDTO);
+    }
+
+    private void seenPendingStudent(PendingStudent pendingStudent){
+        pendingStudent.setSeen(true);
+        pendingStudentRepository.save(pendingStudent);
     }
 
     private Admin newAdminProcessing(Admin admin){

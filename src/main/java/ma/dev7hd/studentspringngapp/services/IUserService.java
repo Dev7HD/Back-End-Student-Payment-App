@@ -58,4 +58,6 @@ public interface IUserService {
     Page<PendingStudent> getPendingStudent(String email, boolean isSeen, int page, int size);
 
     void onLoginNotifications();
+
+    ResponseEntity<PendingStudent> getPendingStudentByEmail(String email);
 }

@@ -133,12 +133,12 @@ public class UserRestController {
 
     /**
      * Get all admins with backend pagination and multi-criteria filtering
-     * @param email
-     * @param firstName
-     * @param lastName
-     * @param departmentName
-     * @param page
-     * @param size
+     * @param email admin email
+     * @param firstName admin first name
+     * @param lastName  admin last name
+     * @param departmentName  admin department name
+     * @param page page number
+     * @param size items per page
      * @return Page<InfosAdminDTO>
      */
     @GetMapping("/admin")
@@ -153,13 +153,13 @@ public class UserRestController {
 
     /**
      * Get all students with backend pagination and multi-criteria filtering
-     * @param email
-     * @param firstName
-     * @param lastName
-     * @param programID
-     * @param code
-     * @param page
-     * @param size
+     * @param email student email
+     * @param firstName student first name
+     * @param lastName student last name
+     * @param programID student study program
+     * @param code student code
+     * @param page page number
+     * @param size items per page
      * @return Page<InfosStudentDTO>
      */
     @GetMapping("/student")
@@ -225,5 +225,10 @@ public class UserRestController {
     @GetMapping("/on-login-notifications")
     public void onLoginNotifications(){
         iUserService.onLoginNotifications();
+    }
+
+    @GetMapping("/pending-student/{email}")
+    public ResponseEntity<PendingStudent> getPendingStudentByEmail(@PathVariable String email){
+        return iUserService.getPendingStudentByEmail(email);
     }
 }

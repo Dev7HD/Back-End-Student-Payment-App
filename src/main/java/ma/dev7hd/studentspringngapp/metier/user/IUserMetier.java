@@ -59,4 +59,6 @@ public interface IUserMetier {
     ResponseEntity<InfosStudentDTO> updateStudentInfo(@NotNull InfosStudentDTO studentDTO);
 
     Map<ProgramID, List<Double>> getProgramIdCounts();
+
+    ResponseEntity<PendingStudent> getPendingStudentByEmail(String email);
 }

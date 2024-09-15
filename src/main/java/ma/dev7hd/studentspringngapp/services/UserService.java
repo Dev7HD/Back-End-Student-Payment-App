@@ -130,4 +130,9 @@ public class UserService implements IUserService {
     public void onLoginNotifications(){
         userMetier.onLoginNotifications();
     }
+
+    @Override
+    public ResponseEntity<PendingStudent> getPendingStudentByEmail(String email){
+        return userMetier.getPendingStudentByEmail(email);
+    }
 }

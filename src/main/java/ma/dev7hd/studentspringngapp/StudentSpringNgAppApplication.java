@@ -21,9 +21,8 @@ import java.io.File;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDate;
-import java.time.Month;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 @EnableScheduling
@@ -83,7 +82,7 @@ public class StudentSpringNgAppApplication {
                     Payment payment = Payment.builder()
                             .amount((int) (random * 10000))
                             .student(student1)
-                            .date(Date.of(2024, Month.of(i+1), 5))
+                            .date(new Date(2024, i, (int) (Math.random() * 30), (int) (Math.random() * 24), (int) (Math.random() * 60), (int) (Math.random() * 60)))
                             .type(random >= 0.75 ? PaymentType.CASH : random >= 0.5 ? PaymentType.CHECK : random >= 0.25 ? PaymentType.DEPOSIT : PaymentType.TRANSFER)
                             .status(random >= 0.66 ? PaymentStatus.VALIDATED : random >= 0.33 ? PaymentStatus.CREATED : PaymentStatus.REJECTED )
                             .addedBy(student)
