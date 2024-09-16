@@ -20,4 +20,6 @@ public interface PendingStudentRepository extends JpaRepository<PendingStudent, 
             Pageable pageable);
 
     List<PendingStudent> findAllBySeen(boolean isSeen);
+
+    boolean existsByEmailOrCode(String email, String code);
 }

@@ -159,10 +159,11 @@ public class UserMetier implements IUserMetier {
 
     @Override
     public ResponseEntity<String> registerStudent(@NotNull NewPendingStudentDTO pendingStudentDTO){
-        Optional<User> optionalUser = userRepository.findById(pendingStudentDTO.getEmail());
-        Optional<Student> optionalStudent = studentRepository.findStudentByCode(pendingStudentDTO.getCode());
-        Optional<BanedRegistration> optionalBanedRegistration = banedRegistrationRepository.findById(pendingStudentDTO.getEmail());
-        if (optionalUser.isPresent() || optionalStudent.isPresent() || optionalBanedRegistration.isPresent()) {
+        boolean userIsExistByEmail = userRepository.existsById(pendingStudentDTO.getEmail());
+        boolean studentExistByCode = studentRepository.existsByCode(pendingStudentDTO.getCode());
+        boolean pendingStudentExistByEmailOrCode = pendingStudentRepository.existsByEmailOrCode(pendingStudentDTO.getEmail(), pendingStudentDTO.getCode());
+        boolean bannedExistById = banedRegistrationRepository.existsById(pendingStudentDTO.getEmail());
+        if (userIsExistByEmail || studentExistByCode || pendingStudentExistByEmailOrCode || bannedExistById) {
             return ResponseEntity.badRequest().body("Email or Code already in use or banned");
         }
         PendingStudent pendingStudent = convertPendingStudentToDto(pendingStudentDTO);

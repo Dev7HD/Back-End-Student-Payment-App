@@ -10,7 +10,7 @@ import java.util.UUID;
 @Getter @Setter
 public class PaymentNotificationDTO {
     private UUID id;
-    private Date date;
+    private Date registerDate;
     private double amount;
     private PaymentType type;
     private String addedBy;

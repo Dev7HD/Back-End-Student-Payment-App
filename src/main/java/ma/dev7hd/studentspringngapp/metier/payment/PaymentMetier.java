@@ -279,6 +279,7 @@ public class PaymentMetier implements IPaymentMetier {
                 .student(student)
                 .type(newPaymentDTO.getPaymentType())
                 .date(newPaymentDTO.getDate())
+                .registerDate(new Date())
                 .status(PaymentStatus.CREATED)
                 .receipt(fileUri)
                 .addedBy(user)

@@ -53,7 +53,7 @@ public class StudentSpringNgAppApplication {
                 Student.programIDCounter.put(programID, values);
             }
 
-            /*final Path PAYMENTS_FOLDER_PATH = Paths.get(System.getProperty("user.home"), "data", "payments");
+            final Path PAYMENTS_FOLDER_PATH = Paths.get(System.getProperty("user.home"), "data", "payments");
             Path filePath = PAYMENTS_FOLDER_PATH.resolve("p.pdf");
             File file = new File(filePath.toUri());
             URI uri = file.toURI();
@@ -82,6 +82,7 @@ public class StudentSpringNgAppApplication {
                     Payment payment = Payment.builder()
                             .amount((int) (random * 10000))
                             .student(student1)
+                            .registerDate(new Date())
                             .date(new Date(2024, i, (int) (Math.random() * 30), (int) (Math.random() * 24), (int) (Math.random() * 60), (int) (Math.random() * 60)))
                             .type(random >= 0.75 ? PaymentType.CASH : random >= 0.5 ? PaymentType.CHECK : random >= 0.25 ? PaymentType.DEPOSIT : PaymentType.TRANSFER)
                             .status(random >= 0.66 ? PaymentStatus.VALIDATED : random >= 0.33 ? PaymentStatus.CREATED : PaymentStatus.REJECTED )
@@ -89,7 +90,7 @@ public class StudentSpringNgAppApplication {
                             .receipt(uri.toString()).build();
                     paymentRepository.save(payment);
                 }
-            });*/
+            });
         };
     }
 }

@@ -26,6 +26,9 @@ public class Payment {
     private Date date;
 
     @Column(nullable = false, updatable = false)
+    private Date registerDate;
+
+    @Column(nullable = false, updatable = false)
     @Positive(message = "Amount must be greater then 0")
     private double amount;
 
