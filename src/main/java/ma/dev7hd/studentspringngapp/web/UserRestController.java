@@ -221,7 +221,7 @@ public class UserRestController {
     @GetMapping("/pending-students")
     public Page<PendingStudent> getPendingStudent(
             @RequestParam(required = false) String email,
-            @RequestParam(required = false) boolean seen,
+            @RequestParam(required = false) Boolean seen,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         return iUserService.getPendingStudent(email, seen, page, size);

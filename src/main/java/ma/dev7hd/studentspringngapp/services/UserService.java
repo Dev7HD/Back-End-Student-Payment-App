@@ -125,7 +125,7 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public Page<PendingStudent> getPendingStudent(String email, boolean isSeen, int page, int size){
+    public Page<PendingStudent> getPendingStudent(String email, Boolean isSeen, int page, int size){
         return userMetier.getPendingStudent(email, isSeen, page, size);
     }
 

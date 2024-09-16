@@ -35,5 +35,5 @@ public class PendingStudent {
     private String code;
 
     @Column(nullable = false)
-    private boolean seen;
+    private Boolean seen;
 }
