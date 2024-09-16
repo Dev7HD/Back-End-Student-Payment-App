@@ -2,6 +2,8 @@ package ma.dev7hd.studentspringngapp.entities;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -20,9 +22,12 @@ import java.util.List;
 @Builder
 public class User implements UserDetails {
     @Id
+    @Email(message = "Invalid email format")
+    @NotBlank(message = "Email is mandatory")
     private String email;
 
     @Column(nullable = false)
+
     private String firstName;
 
     @Column(nullable = false)

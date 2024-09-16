@@ -1,6 +1,7 @@
 package ma.dev7hd.studentspringngapp.entities;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Positive;
 import lombok.*;
 import ma.dev7hd.studentspringngapp.enumirat.*;
 
@@ -25,6 +26,7 @@ public class Payment {
     private Date date;
 
     @Column(nullable = false, updatable = false)
+    @Positive(message = "Amount must be greater then 0")
     private double amount;
 
     @Enumerated(EnumType.STRING)

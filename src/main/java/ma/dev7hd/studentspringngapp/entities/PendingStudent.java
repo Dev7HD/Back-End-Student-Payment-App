@@ -1,6 +1,8 @@
 package ma.dev7hd.studentspringngapp.entities;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
 
@@ -12,6 +14,8 @@ import java.util.Date;
 @Builder
 public class PendingStudent {
     @Id
+    @Email(message = "Invalid email format")
+    @NotBlank(message = "Email is mandatory")
     private String email;
 
     @Column(nullable = false, updatable = false)

@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @CrossOrigin("*")
@@ -28,7 +27,6 @@ import java.util.Map;
 @RequestMapping("/user")
 public class UserRestController {
     private final IUserService iUserService;
-    private final IPaymentService iPaymentService;
 
     /**
      * Get all students
@@ -216,11 +214,6 @@ public class UserRestController {
         return iUserService.banStudentRegistration(email);
     }
 
-    @GetMapping("/student/count-by-program")
-    public Map<ProgramID, List<Double>> getProgramIdCounts() {
-        return iUserService.getProgramIdCounts();
-    }
-
     @PatchMapping("/toggle-account-status")
     ResponseEntity<String> toggleEnableUserAccount(String email) {
         return iUserService.toggleEnableUserAccount(email);
@@ -235,21 +228,9 @@ public class UserRestController {
         return iUserService.getPendingStudent(email, seen, page, size);
     }
 
-    @GetMapping("/on-login-notifications")
-    public void onLoginNotifications() {
-        iUserService.onLoginNotifications();
-        iPaymentService.onLoginPaymentNotifications();
-    }
-
     @GetMapping("/pending-student/{email}")
     public ResponseEntity<PendingStudent> getPendingStudentByEmail(@PathVariable String email) {
         return iUserService.getPendingStudentByEmail(email);
-    }
-
-    @PostMapping("/notifications/mark-all-as-read")
-    public void markAllAsRead() {
-        iUserService.markAsReadAllPendingStudents();
-        iPaymentService.markAllAsRead();
     }
 
     @PostMapping(value = "/list/save", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
