@@ -11,6 +11,7 @@ import ma.dev7hd.studentspringngapp.dtos.otherDTOs.ChangePWDTO;
 import ma.dev7hd.studentspringngapp.entities.PendingStudent;
 import ma.dev7hd.studentspringngapp.enumirat.DepartmentName;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
+import ma.dev7hd.studentspringngapp.services.IPaymentService;
 import ma.dev7hd.studentspringngapp.services.IUserService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
@@ -27,6 +28,7 @@ import java.util.Map;
 @RequestMapping("/user")
 public class UserRestController {
     private final IUserService iUserService;
+    private final IPaymentService iPaymentService;
 
     /**
      * Get all students
@@ -236,6 +238,7 @@ public class UserRestController {
     @GetMapping("/on-login-notifications")
     public void onLoginNotifications() {
         iUserService.onLoginNotifications();
+        iPaymentService.onLoginPaymentNotifications();
     }
 
     @GetMapping("/pending-student/{email}")
@@ -243,9 +246,10 @@ public class UserRestController {
         return iUserService.getPendingStudentByEmail(email);
     }
 
-    @PostMapping("/pending-student/mark-as-read")
-    public void markAsReadAllPendingStudents() {
+    @PostMapping("/notifications/mark-all-as-read")
+    public void markAllAsRead() {
         iUserService.markAsReadAllPendingStudents();
+        iPaymentService.markAllAsRead();
     }
 
     @PostMapping(value = "/list/save", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

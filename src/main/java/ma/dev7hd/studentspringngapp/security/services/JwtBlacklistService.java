@@ -39,19 +39,14 @@ public class JwtBlacklistService implements IJwtBlacklistService {
         return blacklistedTokenRepository.existsByTokenHash(Token.hashToken(token));
     }
 
-    @Scheduled(fixedRate = 60000)
+    @Scheduled(fixedRate = 3600000) // Run every one hour
     @Override
-    public void emptyBlacklistTokens(){
+    public void emptyBlacklistTokensAndUserTokens(){
         Date day = new Date(Instant.now().minus(24, ChronoUnit.HOURS).toEpochMilli());
         System.out.println("Removing Old blacklisted tokens (Older then 24 hours)....");
         blacklistedTokenRepository.deleteAllByBlacklistedAtLessThan(day);
-    }
-
-    @Scheduled(fixedRate = 60000)
-    @Override
-    public void emptyUserTokens(){
-        Date day = new Date(Instant.now().minus(24, ChronoUnit.HOURS).toEpochMilli());
-        System.out.println("Removing expired login tokens (Older then 24 hours)...");
+        System.out.println("Removing Old user tokens (Older then 24 hours)....");
         userTokensRepository.deleteAllByLoginTimeLessThan(day);
     }
+
 }

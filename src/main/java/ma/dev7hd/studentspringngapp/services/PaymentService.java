@@ -90,4 +90,13 @@ public class PaymentService implements IPaymentService {
         return paymentMetier.getPaymentsByMonth(month);
     }
 
+    @Override
+    public void onLoginPaymentNotifications(){
+        paymentMetier.onLoginPaymentNotifications();
+    }
+
+    @Override
+    public void markAllAsRead(){
+        paymentMetier.markAllAsRead();
+    }
 }

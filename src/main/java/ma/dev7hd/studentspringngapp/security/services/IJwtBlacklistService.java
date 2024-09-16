@@ -8,8 +8,6 @@ public interface IJwtBlacklistService {
     boolean isTokenBlacklisted(String token);
 
     @Scheduled(fixedRate = 86400000)
-    void emptyBlacklistTokens();
+    void emptyBlacklistTokensAndUserTokens();
 
-    @Scheduled(fixedRate = 60000)
-    void emptyUserTokens();
 }

@@ -19,8 +19,6 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
     List<Payment> findByStatus(PaymentStatus paymentStatus);
     List<Payment> findByType(PaymentType paymentType);
 
-    void deleteByStudentCode(String studentCode);
-
     @Query("SELECT p FROM Payment p WHERE " +
             "(:code = '' OR p.student.code = :code) AND " +
             "(:email = '' OR p.student.email = :email) AND " +
@@ -39,22 +37,12 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
             @Param("status") PaymentStatus status,
             Pageable pageable);
 
-    /*@Query("SELECT FUNCTION('MONTH', p.date) AS month, COUNT(p) AS count " +
-            "FROM Payment p " +
-            "WHERE (:month IS NULL OR FUNCTION('MONTH', p.date) = :month) " +
-            "GROUP BY FUNCTION('MONTH', p.date)")
-    Map<String, Integer> countPaymentsByMonth(@Param("month") Integer month);
-
-    @Query("SELECT MONTH(p.date) AS mounth, COUNT(p) AS count " +
-            "FROM Payment p " +
-            "WHERE (:month IS NULL OR MONTH(p.date) = :month) " +
-            "GROUP BY MONTH(p.date)")
-    List<Object[]> countAllPaymentsGroupByDateAndOptionalMonth(@Param("month") Integer month);*/
-
     @Query("SELECT MONTH(p.date) AS month, COUNT(p) AS count " +
             "FROM Payment p " +
             "WHERE (:month IS NULL OR MONTH(p.date) = :month) " +
             "GROUP BY MONTH(p.date)" +
             "ORDER BY MONTH(p.date) ASC")
     List<Long[]> countAllPaymentsGroupByDateAndOptionalMonth(@Param("month") Integer month);
+
+    List<Payment> findAllBySeen(boolean seen);
 }

@@ -8,6 +8,7 @@ import ma.dev7hd.studentspringngapp.enumirat.Months;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentStatus;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentType;
 import ma.dev7hd.studentspringngapp.repositories.*;
+import ma.dev7hd.studentspringngapp.websoket.config.WebSocketService;
 import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -39,7 +40,7 @@ public class PaymentMetier implements IPaymentMetier {
     private final PaymentRepository paymentRepository;
     private final PaymentStatusChangeRepository paymentStatusChangeRepository;
     private final ModelMapper modelMapper;
-
+    private final WebSocketService webSocketService;
 
     private static final Path PAYMENTS_FOLDER_PATH = Paths.get(System.getProperty("user.home"), "data", "payments");
 
@@ -60,9 +61,12 @@ public class PaymentMetier implements IPaymentMetier {
             Path filePath = storePaymentReceipt(file);
             if (filePath != null) {
                 Payment payment = buildPayment(newPaymentDTO, student, user, filePath.toString());
-                paymentRepository.save(payment);
-                InfoSavedPayment savedPayment = modelMapper.map(payment, InfoSavedPayment.class);
-                return ResponseEntity.ok(savedPayment);
+                Payment saved = paymentRepository.save(payment);
+                InfoSavedPayment savedPaymentDTO = modelMapper.map(payment, InfoSavedPayment.class);
+
+                // Send new payment notification
+                sendPaymentNotification(saved, user);
+                return ResponseEntity.ok(savedPaymentDTO);
             } else {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
             }
@@ -94,6 +98,7 @@ public class PaymentMetier implements IPaymentMetier {
     @Override
     public List<InfoPaymentDTO> findAllPayments() {
         List<Payment> payments = paymentRepository.findAll();
+        paymentsSeen(payments);
         return payments.stream()
                 .map(this::convertPaymentToDto)
                 .collect(Collectors.toList());
@@ -102,6 +107,7 @@ public class PaymentMetier implements IPaymentMetier {
     @Override
     public List<InfoPaymentDTO> getPaymentsByStatus(PaymentStatus status) {
         List<Payment> payments = paymentRepository.findByStatus(status);
+        paymentsSeen(payments);
         return payments.stream()
                 .map(this::convertPaymentToDto)
                 .collect(Collectors.toList());
@@ -110,6 +116,7 @@ public class PaymentMetier implements IPaymentMetier {
     @Override
     public List<InfoPaymentDTO> getPaymentsByType(PaymentType type) {
         List<Payment> payments = paymentRepository.findByType(type);
+        paymentsSeen(payments);
         return payments.stream()
                 .map(this::convertPaymentToDto)
                 .collect(Collectors.toList());
@@ -120,6 +127,7 @@ public class PaymentMetier implements IPaymentMetier {
         Optional<Payment> optionalPayment = paymentRepository.findById(paymentId);
         if (optionalPayment.isPresent()) {
             Payment payment = optionalPayment.get();
+            paymentsSeen(payment);
             return convertPaymentToDto(payment);
         }
         return null;
@@ -130,6 +138,7 @@ public class PaymentMetier implements IPaymentMetier {
         Optional<Student> optionalStudent = studentRepository.findStudentByCode(code);
         if (optionalStudent.isPresent()) {
             List<Payment> payments = paymentRepository.findByStudentCode(code);
+            paymentsSeen(payments);
             List<InfoPaymentDTO> paymentDTOS = payments.stream()
                     .map(this::convertPaymentToDto)
                     .toList();
@@ -148,6 +157,9 @@ public class PaymentMetier implements IPaymentMetier {
     @Override
     public Page<InfoAdminPaymentDTO> getPaymentsByCriteriaAsAdmin(String email, String code, Double min, Double max, PaymentStatus status, PaymentType type, int page, int size){
         Page<Payment> payments = paymentRepository.findByFilters(code, email, min, max, type, status, PageRequest.of(page, size));
+        if (payments.getTotalElements() > 0){
+            paymentsSeen(payments.getContent());
+        }
         return convertPageablePaymentToDTOAsAdmin(payments);
     }
 
@@ -158,7 +170,30 @@ public class PaymentMetier implements IPaymentMetier {
         return convertPageablePaymentToDTOAsStudent(payments);
     }
 
+    @Override
+    public void onLoginPaymentNotifications(){
+        List<Payment> paymentList = paymentRepository.findAllBySeen(false);
+        paymentList.forEach(payment -> sendPaymentNotification(payment,payment.getAddedBy()));
+    }
+
+    @Override
+    public void markAllAsRead(){
+        List<Payment> paymentList = paymentRepository.findAllBySeen(false);
+        paymentList.forEach(payment -> {
+           payment.setSeen(true);
+           paymentRepository.save(payment);
+        });
+    }
+
     // Private methods
+
+    private void sendPaymentNotification(Payment payment, User user){
+        String message = "New Payment made by " + user.getLastName() + " " + user.getFirstName() + " need to be reviewed.";
+        PaymentNotificationDTO paymentNotificationDTO = modelMapper.map(payment, PaymentNotificationDTO.class);
+        paymentNotificationDTO.setMessage(message);
+        paymentNotificationDTO.setAddedBy(payment.getAddedBy().getEmail());
+        webSocketService.sendToSpecificUser("/notifications/new-payment", paymentNotificationDTO);
+    }
 
     private Page<InfoAdminPaymentDTO> convertPageablePaymentToDTOAsAdmin(Page<Payment> payments) {
         return payments.map(payment -> {
@@ -182,6 +217,22 @@ public class PaymentMetier implements IPaymentMetier {
         return changes;
     }
 
+    private void paymentsSeen(List<Payment> payments) {
+        payments.forEach(payment -> {
+            if(!payment.isSeen()){
+                payment.setSeen(true);
+                paymentRepository.save(payment);
+            }
+        });
+    }
+
+    private void paymentsSeen(Payment payment) {
+        if(!payment.isSeen()){
+            payment.setSeen(true);
+            paymentRepository.save(payment);
+        }
+    }
+
     private InfoPaymentDTO convertPaymentToDto(Payment payment) {
         InfoPaymentDTO paymentsDTO = modelMapper.map(payment, InfoPaymentDTO.class);
 
@@ -197,6 +248,9 @@ public class PaymentMetier implements IPaymentMetier {
         PaymentStatus oldStatus = payment.getStatus();
         if (optionalAdmin.isPresent()) {
             payment.setStatus(newStatus);
+            if(!payment.isSeen()){
+                payment.setSeen(true);
+            }
 
             PaymentStatusChange changes = PaymentStatusChange.builder()
                     .oldStatus(oldStatus)
@@ -228,6 +282,7 @@ public class PaymentMetier implements IPaymentMetier {
                 .status(PaymentStatus.CREATED)
                 .receipt(fileUri)
                 .addedBy(user)
+                .seen(false)
                 .build();
     }
 
