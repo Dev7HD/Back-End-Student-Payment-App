@@ -10,6 +10,6 @@ import java.util.Date;
 @NoArgsConstructor
 @Getter @Setter
 public class BlacklistedToken extends Token {
-    @Column(unique = true, nullable = false, updatable = false)
+    @Column(nullable = false, updatable = false)
     private Date blacklistedAt;
 }

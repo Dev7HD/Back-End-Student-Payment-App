@@ -14,6 +14,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -29,6 +31,9 @@ public class LoadStudents implements ILoadStudents {
     @Transactional
     @Override
     public ResponseEntity<String> uploadStudentFile(@NotNull MultipartFile file) throws Exception {
+        // Start time
+        Instant start = Instant.now();
+
         String fileType = getFileExtension(Objects.requireNonNull(file.getOriginalFilename()));
 
         List<NewStudentDTO> students;
@@ -60,8 +65,44 @@ public class LoadStudents implements ILoadStudents {
             return ResponseEntity.badRequest().body("No students found.");
         }
 
-        saveStudentsToDatabase(students);
-        return ResponseEntity.ok("All students are saved.");
+        int i = saveStudentsToDatabase(students);
+
+        String message;
+
+        if(i == 0){
+            message = "No students were saved.";
+        } else if (i == 1) {
+            message = "One students were saved.";
+        } else {
+            message = i + " students were saved.";
+        }
+        // End time
+        Instant end = Instant.now();
+
+        // Calculate the duration
+        Duration duration = Duration.between(start, end);
+
+        String timeSpent = getTimeSpent(duration);
+
+        return ResponseEntity.ok(message + " " + timeSpent);
+    }
+
+    private static @NotNull String getTimeSpent(Duration duration) {
+        long hours = duration.toHours();
+        long minutes = duration.toMinutesPart();
+        long seconds = duration.toSecondsPart();
+        long millis = duration.toMillisPart();
+
+        String timeSpent;
+
+        if(hours > 0){
+            timeSpent = String.format("Time spent: %02d hours %02d minutes %02d seconds and %03d milliseconds", hours, minutes, seconds, millis);
+        } else if(minutes > 0){
+            timeSpent = String.format("Time spent: %02d minutes %02d seconds and %03d milliseconds", minutes, seconds, millis);
+        } else {
+            timeSpent = String.format("Time spent: %02d seconds and %03d milliseconds", seconds, millis);
+        }
+        return timeSpent;
     }
 
     private List<NewStudentDTO> processExcelFile(MultipartFile file) throws Exception {
@@ -109,8 +150,9 @@ public class LoadStudents implements ILoadStudents {
         return true;
     }
 
-    private void saveStudentsToDatabase(List<NewStudentDTO> students) {
+    private int saveStudentsToDatabase(List<NewStudentDTO> students) {
         final String defaultPassword = "123456";
+        int i = 0;
         for (NewStudentDTO dto : students) {
             if(studentRepository.existsByEmailOrCode(dto.getEmail(), dto.getCode())) {
                 throw new RuntimeException("Email or student code already exists");
@@ -126,8 +168,10 @@ public class LoadStudents implements ILoadStudents {
                 student.setPassword(passwordEncoder.encode(defaultPassword));
 
                 studentRepository.save(student);
+                i++;
             }
         }
+        return i;
     }
 
     private String getFileExtension(String filename) {

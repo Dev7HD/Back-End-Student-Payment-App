@@ -15,18 +15,26 @@ import java.util.Date;
 public class BanedRegistration {
     @Id
     private String email;
+
     @Column(nullable = false, updatable = false)
     private String firstName;
+
     @Column(nullable = false, updatable = false)
     private String lastName;
+
     @Column(nullable = false, updatable = false)
     private Date registerDate;
+
     @Column(nullable = false, updatable = false)
     private Date banDate;
+
     @Column(nullable = false, updatable = false)
+    @Enumerated(EnumType.STRING)
     private ProgramID programID;
+
     @Column(nullable = false, updatable = false)
     private String code;
+
     @ManyToOne
     @JoinColumn(name = "admin_id", nullable = false, updatable = false)
     private Admin adminBanner;

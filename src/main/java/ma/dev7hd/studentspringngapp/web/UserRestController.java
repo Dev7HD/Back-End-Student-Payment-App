@@ -11,7 +11,6 @@ import ma.dev7hd.studentspringngapp.dtos.otherDTOs.ChangePWDTO;
 import ma.dev7hd.studentspringngapp.entities.PendingStudent;
 import ma.dev7hd.studentspringngapp.enumirat.DepartmentName;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
-import ma.dev7hd.studentspringngapp.services.IPaymentService;
 import ma.dev7hd.studentspringngapp.services.IUserService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
@@ -233,7 +232,7 @@ public class UserRestController {
         return iUserService.getPendingStudentByEmail(email);
     }
 
-    @PostMapping(value = "/list/save", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/students/load-from-excel", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> uploadStudentFile(@Parameter(description = "XLS or XLSX to upload") @RequestPart(value = "file")MultipartFile file) throws Exception {
         return iUserService.uploadStudentFile(file);
     }
