@@ -53,7 +53,7 @@ public class StudentSpringNgAppApplication {
                 Student.programIDCounter.put(programID, values);
             }
 
-            final Path PAYMENTS_FOLDER_PATH = Paths.get(System.getProperty("user.home"), "data", "payments");
+            /*final Path PAYMENTS_FOLDER_PATH = Paths.get(System.getProperty("user.home"), "data", "payments");
             Path filePath = PAYMENTS_FOLDER_PATH.resolve("p.pdf");
             File file = new File(filePath.toUri());
             URI uri = file.toURI();
@@ -90,7 +90,7 @@ public class StudentSpringNgAppApplication {
                             .receipt(uri.toString()).build();
                     paymentRepository.save(payment);
                 }
-            });
+            });*/
         };
     }
 }

@@ -43,4 +43,6 @@ public interface IPaymentService {
     void onLoginPaymentNotifications();
 
     void markAllAsRead();
+
+    void deleteNewPaymentNotification(UUID id);
 }

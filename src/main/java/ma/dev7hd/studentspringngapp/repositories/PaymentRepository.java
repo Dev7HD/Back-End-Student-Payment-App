@@ -44,6 +44,6 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
             "ORDER BY MONTH(p.date) ASC")
     List<Long[]> countAllPaymentsGroupByDateAndOptionalMonth(@Param("month") Integer month);
 
-    List<Payment> findAllBySeen(boolean seen);
+    List<Payment> findAllByNotificationDeleted(boolean b);
 
 }

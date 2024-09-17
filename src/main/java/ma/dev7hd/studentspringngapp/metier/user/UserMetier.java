@@ -169,9 +169,20 @@ public class UserMetier implements IUserMetier {
         PendingStudent pendingStudent = convertPendingStudentToDto(pendingStudentDTO);
         pendingStudent.setRegisterDate(new Date());
         pendingStudent.setSeen(false);
+        pendingStudent.setNotificationDeleted(false);
         PendingStudent savedPendingStudent = pendingStudentRepository.save(pendingStudent);
         sendPendingStudentNotifications(savedPendingStudent);
         return ResponseEntity.ok().body("The registration was successful.");
+    }
+
+    @Override
+    public void deleteStudentRegistrationNotification(String email){
+        Optional<PendingStudent> optionalPendingStudent = pendingStudentRepository.findById(email);
+        if (optionalPendingStudent.isPresent()) {
+            PendingStudent pendingStudent = optionalPendingStudent.get();
+            pendingStudent.setNotificationDeleted(true);
+            pendingStudentRepository.save(pendingStudent);
+        }
     }
 
     @Override
@@ -183,7 +194,7 @@ public class UserMetier implements IUserMetier {
 
     @Override
     public void markAsReadAllPendingStudents(){
-        List<PendingStudent> pendingStudents = pendingStudentRepository.findAllBySeen(false);
+        List<PendingStudent> pendingStudents = pendingStudentRepository.findAllByNotificationDeleted(false);
         if(!pendingStudents.isEmpty()){
             pendingStudents.forEach(this::seenPendingStudent);
         }
@@ -202,7 +213,7 @@ public class UserMetier implements IUserMetier {
 
     @Override
     public void onLoginNotifications(){
-        List<PendingStudent> pendingStudents = pendingStudentRepository.findAllBySeen(false);
+        List<PendingStudent> pendingStudents = pendingStudentRepository.findAllByNotificationDeleted(false);
         pendingStudents.forEach(this::sendPendingStudentNotifications);
     }
 
@@ -305,7 +316,7 @@ public class UserMetier implements IUserMetier {
 
     private void sendPendingStudentNotifications(PendingStudent pendingStudent){
         PendingUserDTO pendingUserDTO = modelMapper.map(pendingStudent, PendingUserDTO.class);
-        String message = pendingStudent.getFirstName() + " " + pendingStudent.getLastName() + " made a new registration need to be processed.";
+        String message = pendingStudent.getFirstName() + " " + pendingStudent.getLastName() + " made a new registration need to be reviewed.";
         pendingUserDTO.setMessage(message);
         webSocketService.sendToSpecificUser("/notifications/pending-registration", pendingUserDTO);
     }

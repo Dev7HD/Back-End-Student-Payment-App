@@ -172,23 +172,32 @@ public class PaymentMetier implements IPaymentMetier {
 
     @Override
     public void onLoginPaymentNotifications(){
-        List<Payment> paymentList = paymentRepository.findAllBySeen(false);
+        List<Payment> paymentList = paymentRepository.findAllByNotificationDeleted(false);
         paymentList.forEach(payment -> sendPaymentNotification(payment,payment.getAddedBy()));
     }
 
     @Override
     public void markAllAsRead(){
-        List<Payment> paymentList = paymentRepository.findAllBySeen(false);
+        List<Payment> paymentList = paymentRepository.findAllByNotificationDeleted(false);
         paymentList.forEach(payment -> {
            payment.setSeen(true);
            paymentRepository.save(payment);
         });
     }
 
+    @Override
+    public void deleteNewPaymentNotification(UUID id){
+        Optional<Payment> optionalPayment = paymentRepository.findById(id);
+        if (optionalPayment.isPresent()) {
+            Payment payment = optionalPayment.get();
+            payment.setNotificationDeleted(true);
+        }
+    }
+
     // Private methods
 
     private void sendPaymentNotification(Payment payment, User user){
-        String message = "New Payment made by " + user.getLastName() + " " + user.getFirstName() + " need to be reviewed.";
+        String message = user.getLastName() + " " + user.getFirstName() + " made a new payment of " + payment.getAmount() + " DHs, using " + payment.getType() + " need to be reviewed.";
         PaymentNotificationDTO paymentNotificationDTO = modelMapper.map(payment, PaymentNotificationDTO.class);
         paymentNotificationDTO.setMessage(message);
         paymentNotificationDTO.setAddedBy(payment.getAddedBy().getEmail());
@@ -284,6 +293,7 @@ public class PaymentMetier implements IPaymentMetier {
                 .receipt(fileUri)
                 .addedBy(user)
                 .seen(false)
+                .notificationDeleted(false)
                 .build();
     }
 

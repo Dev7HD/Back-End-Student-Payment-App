@@ -236,4 +236,9 @@ public class UserRestController {
     public ResponseEntity<String> uploadStudentFile(@Parameter(description = "XLS or XLSX to upload") @RequestPart(value = "file")MultipartFile file) throws Exception {
         return iUserService.uploadStudentFile(file);
     }
+
+    @PostMapping("/delete-notification")
+    public void deleteStudentRegistrationNotification(String email){
+        iUserService.deleteStudentRegistrationNotification(email);
+    }
 }

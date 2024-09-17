@@ -173,4 +173,9 @@ public class PaymentRestController {
     public ResponseEntity<Map<Months, Long>> getPaymentsByMonth(@RequestParam(required = false) Integer month) {
         return iPaymentService.getPaymentsByMonth(month);
     }
+
+    @PostMapping("/delete-notification")
+    public void deleteNewPaymentNotification(UUID id){
+        iPaymentService.deleteNewPaymentNotification(id);
+    }
 }

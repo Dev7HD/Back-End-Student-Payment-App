@@ -43,5 +43,7 @@ public interface IPaymentMetier {
 
     void markAllAsRead();
 
+    void deleteNewPaymentNotification(UUID id);
+
     ResponseEntity<Map<Months, Long>> getPaymentsByMonth(Integer month);
 }

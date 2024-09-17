@@ -65,4 +65,6 @@ public interface IUserService {
     void markAsReadAllPendingStudents();
 
     ResponseEntity<String> uploadStudentFile(@NotNull MultipartFile file) throws Exception;
+
+    void deleteStudentRegistrationNotification(String email);
 }

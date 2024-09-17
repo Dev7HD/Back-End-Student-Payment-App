@@ -19,7 +19,7 @@ public interface PendingStudentRepository extends JpaRepository<PendingStudent, 
             @Param("seen") Boolean seen,
             Pageable pageable);
 
-    List<PendingStudent> findAllBySeen(boolean isSeen);
+    List<PendingStudent> findAllByNotificationDeleted(boolean b);
 
     boolean existsByEmailOrCode(String email, String code);
 }

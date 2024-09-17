@@ -148,4 +148,9 @@ public class UserService implements IUserService {
     public ResponseEntity<String> uploadStudentFile(@NotNull MultipartFile file) throws Exception {
         return processData.uploadStudentFile(file);
     }
+
+    @Override
+    public void deleteStudentRegistrationNotification(String email){
+        userMetier.deleteStudentRegistrationNotification(email);
+    }
 }

@@ -16,6 +16,7 @@ public class InfoPaymentDTO {
     private UUID id;
     private double amount;
     private Date date;
+    private Date registerDate;
     private PaymentType type;
     private PaymentStatus status;
     private String receipt;

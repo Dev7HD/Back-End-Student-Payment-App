@@ -99,4 +99,9 @@ public class PaymentService implements IPaymentService {
     public void markAllAsRead(){
         paymentMetier.markAllAsRead();
     }
+
+    @Override
+    public void deleteNewPaymentNotification(UUID id){
+        paymentMetier.deleteNewPaymentNotification(id);
+    }
 }
