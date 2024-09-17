@@ -43,11 +43,6 @@ public class Payment {
     @Column(nullable = false, updatable = false)
     private String receipt;
 
-    @Column(nullable = false)
-    private boolean seen;
-
-    private boolean notificationDeleted;
-
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "student_id", nullable = false, updatable = false)
     private Student student;

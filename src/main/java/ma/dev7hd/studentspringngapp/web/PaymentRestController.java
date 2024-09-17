@@ -101,7 +101,6 @@ public class PaymentRestController {
      */
     @PostMapping(value = "/new", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<InfoSavedPayment> addNewPayment(NewPaymentDTO newPaymentDTO, @Parameter(description = "PDF to upload") @RequestPart(value = "file")MultipartFile file) throws IOException {
-        System.out.println("New Payment");
         return iPaymentService.newPayment(newPaymentDTO,file);
     }
 
@@ -174,8 +173,4 @@ public class PaymentRestController {
         return iPaymentService.getPaymentsByMonth(month);
     }
 
-    @PostMapping("/delete-notification")
-    public void deleteNewPaymentNotification(UUID id){
-        iPaymentService.deleteNewPaymentNotification(id);
-    }
 }

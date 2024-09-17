@@ -34,8 +34,4 @@ public class PendingStudent {
     @Column(nullable = false, updatable = false, unique = true)
     private String code;
 
-    @Column(nullable = false)
-    private Boolean seen;
-
-    private boolean notificationDeleted;
 }

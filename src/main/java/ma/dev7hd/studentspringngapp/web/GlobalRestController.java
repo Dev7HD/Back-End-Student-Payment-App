@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import ma.dev7hd.studentspringngapp.metier.global.IGlobalMetier;
 import ma.dev7hd.studentspringngapp.services.IPaymentService;
 import ma.dev7hd.studentspringngapp.services.IUserService;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -14,11 +15,9 @@ import java.util.Map;
 @RequestMapping("/app")
 public class GlobalRestController {
     private final IGlobalMetier globalMetier;
-    private final IUserService iUserService;
-    private final IPaymentService iPaymentService;
 
     @GetMapping("/on-login-data")
-    public Map<String, Map> onLoginFetchData(){
+    public Map<String, Map> onLoginFetchData() throws ChangeSetPersister.NotFoundException {
         return globalMetier.onLoginFetchData();
     }
 
@@ -27,9 +26,4 @@ public class GlobalRestController {
         return globalMetier.dashboardData(month);
     }
 
-    @PostMapping("/notifications/mark-all-as-read")
-    public void markAllAsRead() {
-        iUserService.markAsReadAllPendingStudents();
-        iPaymentService.markAllAsRead();
-    }
 }

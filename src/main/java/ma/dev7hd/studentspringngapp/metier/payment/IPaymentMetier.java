@@ -39,11 +39,6 @@ public interface IPaymentMetier {
 
     Page<InfoStudentPaymentDTO> getPaymentsByCriteriaAsStudent(Double min, Double max, PaymentStatus status, PaymentType type, int page, int size);
 
-    void onLoginPaymentNotifications();
-
-    void markAllAsRead();
-
-    void deleteNewPaymentNotification(UUID id);
-
     ResponseEntity<Map<Months, Long>> getPaymentsByMonth(Integer month);
+
 }

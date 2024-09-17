@@ -29,6 +29,10 @@ public class Admin extends User {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private List<BanedRegistration> banedRegistrations;
 
+    @ManyToMany(mappedBy = "adminRemover")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private List<Notification> deletedNotifications;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_STUDENT"), new SimpleGrantedAuthority("ROLE_ADMIN"));

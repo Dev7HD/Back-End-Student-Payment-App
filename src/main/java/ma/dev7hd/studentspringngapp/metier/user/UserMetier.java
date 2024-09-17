@@ -3,7 +3,6 @@ package ma.dev7hd.studentspringngapp.metier.user;
 import lombok.AllArgsConstructor;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfosAdminDTO;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfosStudentDTO;
-import ma.dev7hd.studentspringngapp.dtos.infoDTOs.PendingUserDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewAdminDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewStudentDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewPendingStudentDTO;
@@ -11,9 +10,9 @@ import ma.dev7hd.studentspringngapp.dtos.otherDTOs.ChangePWDTO;
 import ma.dev7hd.studentspringngapp.entities.*;
 import ma.dev7hd.studentspringngapp.enumirat.DepartmentName;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
+import ma.dev7hd.studentspringngapp.metier.notification.INotificationMetier;
 import ma.dev7hd.studentspringngapp.repositories.*;
 import ma.dev7hd.studentspringngapp.security.services.ISecurityService;
-import ma.dev7hd.studentspringngapp.websoket.config.WebSocketService;
 import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -43,7 +42,7 @@ public class UserMetier implements IUserMetier {
     private final ModelMapper modelMapper;
     private final PendingStudentRepository pendingStudentRepository;
     private final BanedRegistrationRepository banedRegistrationRepository;
-    private final WebSocketService webSocketService;
+    private final INotificationMetier notificationMetier;
 
     private final String defaultPassword = "123456";
 
@@ -168,36 +167,16 @@ public class UserMetier implements IUserMetier {
         }
         PendingStudent pendingStudent = convertPendingStudentToDto(pendingStudentDTO);
         pendingStudent.setRegisterDate(new Date());
-        pendingStudent.setSeen(false);
-        pendingStudent.setNotificationDeleted(false);
         PendingStudent savedPendingStudent = pendingStudentRepository.save(pendingStudent);
         sendPendingStudentNotifications(savedPendingStudent);
         return ResponseEntity.ok().body("The registration was successful.");
     }
 
     @Override
-    public void deleteStudentRegistrationNotification(String email){
-        Optional<PendingStudent> optionalPendingStudent = pendingStudentRepository.findById(email);
-        if (optionalPendingStudent.isPresent()) {
-            PendingStudent pendingStudent = optionalPendingStudent.get();
-            pendingStudent.setNotificationDeleted(true);
-            pendingStudentRepository.save(pendingStudent);
-        }
-    }
-
-    @Override
-    public Page<PendingStudent> getPendingStudent(String email, Boolean isSeen, int page, int size){
-        Page<PendingStudent> pendingStudents = pendingStudentRepository.findByPendingStudentsByFilter(email, isSeen, PageRequest.of(page, size));
-        pendingStudents.forEach(this::seenPendingStudent);
+    public Page<PendingStudent> getPendingStudent(String email, int page, int size){
+        Page<PendingStudent> pendingStudents = pendingStudentRepository.findByPendingStudentsByFilter(email, PageRequest.of(page, size));
+        seenNewRegistration(pendingStudents.getContent());
         return pendingStudents;
-    }
-
-    @Override
-    public void markAsReadAllPendingStudents(){
-        List<PendingStudent> pendingStudents = pendingStudentRepository.findAllByNotificationDeleted(false);
-        if(!pendingStudents.isEmpty()){
-            pendingStudents.forEach(this::seenPendingStudent);
-        }
     }
 
     @Override
@@ -205,16 +184,10 @@ public class UserMetier implements IUserMetier {
         Optional<PendingStudent> optionalPendingStudent = pendingStudentRepository.findById(email);
         if (optionalPendingStudent.isPresent()) {
             PendingStudent pendingStudent = optionalPendingStudent.get();
-            seenPendingStudent(pendingStudent);
+            notificationMetier.notificationSeen(null,pendingStudent.getEmail());
             return ResponseEntity.ok(pendingStudent);
         }
         return ResponseEntity.notFound().build();
-    }
-
-    @Override
-    public void onLoginNotifications(){
-        List<PendingStudent> pendingStudents = pendingStudentRepository.findAllByNotificationDeleted(false);
-        pendingStudents.forEach(this::sendPendingStudentNotifications);
     }
 
     @Override
@@ -315,15 +288,13 @@ public class UserMetier implements IUserMetier {
     }
 
     private void sendPendingStudentNotifications(PendingStudent pendingStudent){
-        PendingUserDTO pendingUserDTO = modelMapper.map(pendingStudent, PendingUserDTO.class);
+        PendingStudentNotification notification = new PendingStudentNotification();
         String message = pendingStudent.getFirstName() + " " + pendingStudent.getLastName() + " made a new registration need to be reviewed.";
-        pendingUserDTO.setMessage(message);
-        webSocketService.sendToSpecificUser("/notifications/pending-registration", pendingUserDTO);
-    }
-
-    private void seenPendingStudent(PendingStudent pendingStudent){
-        pendingStudent.setSeen(true);
-        pendingStudentRepository.save(pendingStudent);
+        notification.setEmail(pendingStudent.getEmail());
+        notification.setSeen(false);
+        notification.setMessage(message);
+        notification.setRegisterDate(new Date());
+        notificationMetier.newNotification(notification);
     }
 
     private Admin newAdminProcessing(Admin admin){
@@ -399,5 +370,11 @@ public class UserMetier implements IUserMetier {
 
     private String getCurrentUserEmail() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
+    }
+
+    private void seenNewRegistration(List<PendingStudent> pendingStudents){
+        for(PendingStudent pendingStudent : pendingStudents){
+            notificationMetier.notificationSeen(null,pendingStudent.getEmail());
+        }
     }
 }

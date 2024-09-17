@@ -40,9 +40,4 @@ public interface IPaymentService {
 
     ResponseEntity<Map<Months, Long>> getPaymentsByMonth(Integer month);
 
-    void onLoginPaymentNotifications();
-
-    void markAllAsRead();
-
-    void deleteNewPaymentNotification(UUID id);
 }

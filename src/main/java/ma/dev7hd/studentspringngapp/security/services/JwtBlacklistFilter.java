@@ -55,7 +55,6 @@ public class JwtBlacklistFilter extends OncePerRequestFilter {
         if (token == null) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("Token error!");
-            System.out.println("Token error!");
             return;
         }
 

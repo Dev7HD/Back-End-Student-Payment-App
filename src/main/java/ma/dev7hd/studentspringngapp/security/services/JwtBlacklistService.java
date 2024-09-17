@@ -27,9 +27,7 @@ public class JwtBlacklistService implements IJwtBlacklistService {
             BlacklistedToken blacklistedToken = new BlacklistedToken();
             blacklistedToken.setToken(token);
             blacklistedToken.setBlacklistedAt(new Date());
-            System.out.println("BLACKLISTING USER TOKENS!!!!");
             blacklistedTokenRepository.save(blacklistedToken);
-            System.out.println("DELETE USER TOKENS!!!!");
             userTokensRepository.deleteByTokenHash(Token.hashToken(token));
         }
     }

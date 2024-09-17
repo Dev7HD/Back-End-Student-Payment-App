@@ -125,13 +125,8 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public Page<PendingStudent> getPendingStudent(String email, Boolean isSeen, int page, int size){
-        return userMetier.getPendingStudent(email, isSeen, page, size);
-    }
-
-    @Override
-    public void onLoginNotifications(){
-        userMetier.onLoginNotifications();
+    public Page<PendingStudent> getPendingStudent(String email, int page, int size){
+        return userMetier.getPendingStudent(email, page, size);
     }
 
     @Override
@@ -140,17 +135,7 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public void markAsReadAllPendingStudents(){
-        userMetier.markAsReadAllPendingStudents();
-    }
-
-    @Override
     public ResponseEntity<String> uploadStudentFile(@NotNull MultipartFile file) throws Exception {
         return processData.uploadStudentFile(file);
-    }
-
-    @Override
-    public void deleteStudentRegistrationNotification(String email){
-        userMetier.deleteStudentRegistrationNotification(email);
     }
 }

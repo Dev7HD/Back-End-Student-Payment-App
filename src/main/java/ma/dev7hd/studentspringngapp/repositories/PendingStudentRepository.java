@@ -7,19 +7,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.List;
 
 public interface PendingStudentRepository extends JpaRepository<PendingStudent, String> {
 
     @Query("SELECT a FROM PendingStudent a WHERE " +
-            "(:email IS NULL OR a.email = :email) AND " +
-            "(:seen IS NULL OR a.seen = :seen) ")
+            "(:email IS NULL OR a.email = :email) ")
     Page<PendingStudent> findByPendingStudentsByFilter(
             @Param("email") String email,
-            @Param("seen") Boolean seen,
             Pageable pageable);
-
-    List<PendingStudent> findAllByNotificationDeleted(boolean b);
 
     boolean existsByEmailOrCode(String email, String code);
 }

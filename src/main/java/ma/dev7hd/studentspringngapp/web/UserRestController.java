@@ -221,10 +221,9 @@ public class UserRestController {
     @GetMapping("/pending-students")
     public Page<PendingStudent> getPendingStudent(
             @RequestParam(required = false) String email,
-            @RequestParam(required = false) Boolean seen,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return iUserService.getPendingStudent(email, seen, page, size);
+        return iUserService.getPendingStudent(email, page, size);
     }
 
     @GetMapping("/pending-student/{email}")
@@ -237,8 +236,4 @@ public class UserRestController {
         return iUserService.uploadStudentFile(file);
     }
 
-    @PostMapping("/delete-notification")
-    public void deleteStudentRegistrationNotification(String email){
-        iUserService.deleteStudentRegistrationNotification(email);
-    }
 }

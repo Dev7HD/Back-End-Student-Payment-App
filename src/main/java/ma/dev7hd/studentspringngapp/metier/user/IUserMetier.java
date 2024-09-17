@@ -12,7 +12,6 @@ import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -44,10 +43,8 @@ public interface IUserMetier {
 
     ResponseEntity<String> registerStudent(NewPendingStudentDTO pendingStudentDTO);
 
-    @Transactional
-    void deleteStudentRegistrationNotification(String email);
+    Page<PendingStudent> getPendingStudent(String email, int page, int size);
 
-    Page<PendingStudent> getPendingStudent(String email, Boolean seen, int page, int size);
 
     ResponseEntity<?> approvingStudentRegistration(@NotNull String email);
 
@@ -56,15 +53,11 @@ public interface IUserMetier {
 
     ResponseEntity<String> toggleEnableUserAccount(String email);
 
-    void onLoginNotifications();
-
     ResponseEntity<String> banStudentRegistration(@NotNull String email);
 
     ResponseEntity<InfosStudentDTO> updateStudentInfo(@NotNull InfosStudentDTO studentDTO);
 
     Map<ProgramID, List<Double>> getProgramIdCounts();
-
-    void markAsReadAllPendingStudents();
 
     ResponseEntity<PendingStudent> getPendingStudentByEmail(String email);
 }

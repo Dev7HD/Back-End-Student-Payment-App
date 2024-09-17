@@ -56,15 +56,10 @@ public interface IUserService {
 
     ResponseEntity<String> toggleEnableUserAccount(String email);
 
-    Page<PendingStudent> getPendingStudent(String email, Boolean isSeen, int page, int size);
-
-    void onLoginNotifications();
+    Page<PendingStudent> getPendingStudent(String email, int page, int size);
 
     ResponseEntity<PendingStudent> getPendingStudentByEmail(String email);
 
-    void markAsReadAllPendingStudents();
-
     ResponseEntity<String> uploadStudentFile(@NotNull MultipartFile file) throws Exception;
 
-    void deleteStudentRegistrationNotification(String email);
 }
