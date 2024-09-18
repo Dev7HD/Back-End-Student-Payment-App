@@ -37,11 +37,16 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
             @Param("status") PaymentStatus status,
             Pageable pageable);
 
-    @Query("SELECT MONTH(p.date) AS month, COUNT(p) AS count " +
-            "FROM Payment p " +
-            "WHERE (:month IS NULL OR MONTH(p.date) = :month) " +
-            "GROUP BY MONTH(p.date)" +
-            "ORDER BY MONTH(p.date) ASC")
+    @Query(value = "SELECT m.month AS month, COALESCE(COUNT(p.id), 0) AS count " +
+            "FROM (SELECT 1 AS month UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL " +
+            "SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL " +
+            "SELECT 8 UNION ALL SELECT 9 UNION ALL SELECT 10 UNION ALL SELECT 11 UNION ALL " +
+            "SELECT 12) m " +
+            "LEFT JOIN payment p ON MONTH(p.date) = m.month " +
+            "AND (:month IS NULL OR MONTH(p.date) = :month) " +
+            "GROUP BY m.month " +
+            "ORDER BY m.month ASC",
+            nativeQuery = true)
     List<Long[]> countAllPaymentsGroupByDateAndOptionalMonth(@Param("month") Integer month);
 
 }
