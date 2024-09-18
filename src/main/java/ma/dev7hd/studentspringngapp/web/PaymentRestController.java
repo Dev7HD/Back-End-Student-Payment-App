@@ -7,7 +7,7 @@ import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewPaymentDTO;
 import ma.dev7hd.studentspringngapp.enumirat.Months;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentStatus;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentType;
-import ma.dev7hd.studentspringngapp.services.IPaymentService;
+import ma.dev7hd.studentspringngapp.services.payment.IPaymentService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -89,7 +89,7 @@ public class PaymentRestController {
      */
     @PatchMapping("/{id}/status-update")
     public ResponseEntity<InfoPaymentDTO> paymentStatusUpdate(@PathVariable UUID id, @RequestParam PaymentStatus newStatus) {
-        return iPaymentService.paymentStatusUpdate(id,newStatus);
+        return iPaymentService.updatePaymentStatus(id,newStatus);
     }
 
     /**
@@ -101,7 +101,7 @@ public class PaymentRestController {
      */
     @PostMapping(value = "/new", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<InfoSavedPayment> addNewPayment(NewPaymentDTO newPaymentDTO, @Parameter(description = "PDF to upload") @RequestPart(value = "file")MultipartFile file) throws IOException {
-        return iPaymentService.newPayment(newPaymentDTO,file);
+        return iPaymentService.saveNewPayment(newPaymentDTO,file);
     }
 
     /**
@@ -112,7 +112,7 @@ public class PaymentRestController {
      */
     @GetMapping(path = "/receipt/{paymentId}", produces = MediaType.APPLICATION_PDF_VALUE)
     public byte[] getPaymentFile(@PathVariable UUID paymentId) throws IOException {
-        return iPaymentService.getPaymentFile(paymentId);
+        return iPaymentService.getReceipt(paymentId);
     }
 
     /**
@@ -120,8 +120,14 @@ public class PaymentRestController {
      * @return List<InfoStatusChangesDTO>
      */
     @GetMapping("/changes")
-    public List<InfoStatusChangesDTO> changes() {
-        return iPaymentService.getPaymentStatusChanges();
+    public Page<InfoStatusChangesDTO> changes(
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) UUID paymentId,
+            @RequestParam(required = false) PaymentStatus newStatus,
+            @RequestParam(required = false) PaymentStatus oldStatus,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return iPaymentService.getPaymentsStatusChangers(email, paymentId, newStatus, oldStatus, page, size);
     }
 
     /**

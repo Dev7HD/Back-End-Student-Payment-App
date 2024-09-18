@@ -1,4 +1,4 @@
-package ma.dev7hd.studentspringngapp.metier.user;
+package ma.dev7hd.studentspringngapp.services.user;
 
 import lombok.AllArgsConstructor;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfosAdminDTO;
@@ -10,7 +10,7 @@ import ma.dev7hd.studentspringngapp.dtos.otherDTOs.ChangePWDTO;
 import ma.dev7hd.studentspringngapp.entities.*;
 import ma.dev7hd.studentspringngapp.enumirat.DepartmentName;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
-import ma.dev7hd.studentspringngapp.metier.notification.INotificationMetier;
+import ma.dev7hd.studentspringngapp.services.notification.INotificationService;
 import ma.dev7hd.studentspringngapp.repositories.*;
 import ma.dev7hd.studentspringngapp.security.services.ISecurityService;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +31,7 @@ import java.util.Optional;
 @Service
 @AllArgsConstructor
 @Transactional
-public class UserMetier implements IUserMetier {
+public class UserService implements IUserService {
 
     private final UserRepository userRepository;
     private final StudentRepository studentRepository;
@@ -42,12 +42,12 @@ public class UserMetier implements IUserMetier {
     private final ModelMapper modelMapper;
     private final PendingStudentRepository pendingStudentRepository;
     private final BanedRegistrationRepository banedRegistrationRepository;
-    private final INotificationMetier notificationMetier;
+    private final INotificationService notificationMetier;
 
     private final String defaultPassword = "123456";
 
     @Override
-    public ResponseEntity<String> deleteUser(String email) {
+    public ResponseEntity<String> deleteUserByEmail(String email) {
         Optional<User> optionalUser = userRepository.findById(email);
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();

@@ -11,7 +11,8 @@ import ma.dev7hd.studentspringngapp.dtos.otherDTOs.ChangePWDTO;
 import ma.dev7hd.studentspringngapp.entities.PendingStudent;
 import ma.dev7hd.studentspringngapp.enumirat.DepartmentName;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
-import ma.dev7hd.studentspringngapp.services.IUserService;
+import ma.dev7hd.studentspringngapp.services.dataFromFile.ILoadStudentsService;
+import ma.dev7hd.studentspringngapp.services.user.IUserService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +27,7 @@ import java.util.List;
 @RequestMapping("/user")
 public class UserRestController {
     private final IUserService iUserService;
+    private final ILoadStudentsService iLoadStudentsService;
 
     /**
      * Get all students
@@ -46,7 +48,7 @@ public class UserRestController {
     @GetMapping(path = "/admin/all")
     //@PreAuthorize("hasAnyAuthority('SCOPE_ROLE_ADMIN')")
     public List<InfosAdminDTO> getAllAdmin() {
-        return iUserService.getAllAdmins();
+        return iUserService.getAdmins();
     }
 
     /**
@@ -96,7 +98,7 @@ public class UserRestController {
 
     @PutMapping("/student/update")
     public ResponseEntity<InfosStudentDTO> updateStudentInfo(@RequestBody InfosStudentDTO infosStudentDTO) {
-        return iUserService.updateStudent(infosStudentDTO);
+        return iUserService.updateStudentInfo(infosStudentDTO);
     }
 
     /**
@@ -107,7 +109,7 @@ public class UserRestController {
      */
     @PostMapping("/student/new")
     public ResponseEntity<NewStudentDTO> saveStudent(@RequestBody NewStudentDTO studentDTO) {
-        return iUserService.addStudent(studentDTO);
+        return iUserService.saveStudent(studentDTO);
     }
 
     /**
@@ -118,7 +120,7 @@ public class UserRestController {
      */
     @PostMapping("/admin/new")
     public ResponseEntity<NewAdminDTO> saveAdmin(@RequestBody NewAdminDTO adminDTO) {
-        return iUserService.addAdmin(adminDTO);
+        return iUserService.saveAdmin(adminDTO);
     }
 
     /**
@@ -129,7 +131,7 @@ public class UserRestController {
      */
     @PutMapping("/change-pw")
     public ResponseEntity<String> changePassword(@RequestBody ChangePWDTO changePWDTO) {
-        return iUserService.changePassword(changePWDTO);
+        return iUserService.changePW(changePWDTO);
     }
 
     /**
@@ -184,7 +186,7 @@ public class UserRestController {
                                                        @RequestParam(defaultValue = "") String code,
                                                        @RequestParam(defaultValue = "0") int page,
                                                        @RequestParam(defaultValue = "10") int size) {
-        return iUserService.getStudentsByCriteria(email, firstName, lastName, programID, code, page, size);
+        return iUserService.getStudentsByCriteriaAsAdmin(email, firstName, lastName, programID, code, page, size);
     }
 
     /**
@@ -233,7 +235,7 @@ public class UserRestController {
 
     @PostMapping(value = "/students/load-from-excel", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> uploadStudentFile(@Parameter(description = "XLS or XLSX to upload") @RequestPart(value = "file")MultipartFile file) throws Exception {
-        return iUserService.uploadStudentFile(file);
+        return iLoadStudentsService.uploadStudentFile(file);
     }
 
 }

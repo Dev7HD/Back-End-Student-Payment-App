@@ -3,7 +3,7 @@ package ma.dev7hd.studentspringngapp.security.config;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import io.github.cdimascio.dotenv.Dotenv;
 import ma.dev7hd.studentspringngapp.security.services.JwtBlacklistFilter;
-import ma.dev7hd.studentspringngapp.services.CustomUserDetailsService;
+import ma.dev7hd.studentspringngapp.services.user.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;

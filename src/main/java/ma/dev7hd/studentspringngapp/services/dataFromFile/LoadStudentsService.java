@@ -1,4 +1,4 @@
-package ma.dev7hd.studentspringngapp.metier.dataFromFile;
+package ma.dev7hd.studentspringngapp.services.dataFromFile;
 
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -22,7 +22,7 @@ import java.util.Objects;
 
 @Service
 @AllArgsConstructor
-public class LoadStudents implements ILoadStudents {
+public class LoadStudentsService implements ILoadStudentsService {
     private final StudentRepository studentRepository;
     private final PasswordEncoder passwordEncoder;
 

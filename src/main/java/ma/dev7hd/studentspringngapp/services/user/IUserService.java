@@ -1,4 +1,4 @@
-package ma.dev7hd.studentspringngapp.metier.user;
+package ma.dev7hd.studentspringngapp.services.user;
 
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfosAdminDTO;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfosStudentDTO;
@@ -16,8 +16,8 @@ import org.springframework.http.ResponseEntity;
 import java.util.List;
 import java.util.Map;
 
-public interface IUserMetier {
-    ResponseEntity<String> deleteUser(String email);
+public interface IUserService {
+    ResponseEntity<String> deleteUserByEmail(String email);
 
     List<InfosStudentDTO> getAllStudents();
 

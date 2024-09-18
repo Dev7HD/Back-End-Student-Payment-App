@@ -1,4 +1,4 @@
-package ma.dev7hd.studentspringngapp.metier.payment;
+package ma.dev7hd.studentspringngapp.services.payment;
 
 import lombok.AllArgsConstructor;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.*;
@@ -7,7 +7,7 @@ import ma.dev7hd.studentspringngapp.entities.*;
 import ma.dev7hd.studentspringngapp.enumirat.Months;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentStatus;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentType;
-import ma.dev7hd.studentspringngapp.metier.notification.INotificationMetier;
+import ma.dev7hd.studentspringngapp.services.notification.INotificationService;
 import ma.dev7hd.studentspringngapp.repositories.*;
 import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;
@@ -33,14 +33,14 @@ import java.util.stream.Collectors;
 @Service
 @AllArgsConstructor
 @Transactional
-public class PaymentMetier implements IPaymentMetier {
+public class PaymentService implements IPaymentService {
     private final UserRepository userRepository;
     private final AdminRepository adminRepository;
     private final StudentRepository studentRepository;
     private final PaymentRepository paymentRepository;
     private final PaymentStatusChangeRepository paymentStatusChangeRepository;
     private final ModelMapper modelMapper;
-    private final INotificationMetier notificationMetier;
+    private final INotificationService notificationMetier;
 
     private static final Path PAYMENTS_FOLDER_PATH = Paths.get(System.getProperty("user.home"), "data", "payments");
 
@@ -96,7 +96,7 @@ public class PaymentMetier implements IPaymentMetier {
     }
 
     @Override
-    public List<InfoPaymentDTO> findAllPayments() {
+    public List<InfoPaymentDTO> getAllPayments() {
         List<Payment> payments = paymentRepository.findAll();
         paymentNotificationSeen(payments);
         return payments.stream()
@@ -123,12 +123,12 @@ public class PaymentMetier implements IPaymentMetier {
     }
 
     @Override
-    public InfoPaymentDTO getPaymentById(UUID paymentId) {
+    public ResponseEntity<InfoPaymentDTO> getPaymentById(UUID paymentId) {
         Optional<Payment> optionalPayment = paymentRepository.findById(paymentId);
         if (optionalPayment.isPresent()) {
             Payment payment = optionalPayment.get();
             notificationMetier.notificationSeen(payment.getId(), null);
-            return convertPaymentToDto(payment);
+            return ResponseEntity.ok(convertPaymentToDto(payment));
         }
         return null;
     }
@@ -149,9 +149,11 @@ public class PaymentMetier implements IPaymentMetier {
     }
 
     @Override
-    public List<InfoStatusChangesDTO> getChanges(){
-        List<PaymentStatusChange> changes = paymentStatusChangeRepository.findAll();
-        return changes.stream().map(this::convertChanges).toList();
+    public Page<InfoStatusChangesDTO> getPaymentsStatusChangers(String email, UUID paymentId, PaymentStatus newStatus, PaymentStatus oldStatus, int page, int size){
+        Admin admin = email != null ? adminRepository.findById(email).orElse(null) : null;
+        Payment payment = paymentId != null ? paymentRepository.findById(paymentId).orElse(null) : null;
+        Page<PaymentStatusChange> statusChanges = paymentStatusChangeRepository.findAll(admin, payment, newStatus, oldStatus, PageRequest.of(page, size));
+        return convertChanges(statusChanges);
     }
 
     @Override
@@ -221,11 +223,8 @@ public class PaymentMetier implements IPaymentMetier {
     }
 
 
-    private InfoStatusChangesDTO convertChanges(PaymentStatusChange paymentStatusChange) {
-        InfoStatusChangesDTO changes = modelMapper.map(paymentStatusChange, InfoStatusChangesDTO.class);
-        changes.setAdminEmail(paymentStatusChange.getAdmin().getEmail());
-        changes.setPaymentId(paymentStatusChange.getPayment().getId());
-        return changes;
+    private Page<InfoStatusChangesDTO> convertChanges(Page<PaymentStatusChange> paymentStatusChanges) {
+        return paymentStatusChanges.map(change -> modelMapper.map(change, InfoStatusChangesDTO.class));
     }
 
     private InfoPaymentDTO convertPaymentToDto(Payment payment) {

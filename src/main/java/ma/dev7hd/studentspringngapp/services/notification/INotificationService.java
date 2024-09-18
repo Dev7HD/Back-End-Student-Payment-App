@@ -1,12 +1,14 @@
-package ma.dev7hd.studentspringngapp.metier.notification;
+package ma.dev7hd.studentspringngapp.services.notification;
 
+import ma.dev7hd.studentspringngapp.dtos.infoDTOs.NotificationDTO;
 import ma.dev7hd.studentspringngapp.entities.Notification;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.crossstore.ChangeSetPersister;
+import org.springframework.data.domain.Page;
 
 import java.util.UUID;
 
-public interface INotificationMetier {
+public interface INotificationService {
     void pushNotifications() throws ChangeSetPersister.NotFoundException;
 
     void newNotification(Notification notification);
@@ -18,4 +20,6 @@ public interface INotificationMetier {
     boolean toggleSeen(Long id);
 
     void notificationSeen(UUID paymentId, String email);
+
+    Page<NotificationDTO> pageableNotifications(Boolean seen, int page, int size) throws ChangeSetPersister.NotFoundException;
 }

@@ -1,10 +1,11 @@
-package ma.dev7hd.studentspringngapp.services;
+package ma.dev7hd.studentspringngapp.services.payment;
 
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.*;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewPaymentDTO;
 import ma.dev7hd.studentspringngapp.enumirat.Months;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentStatus;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentType;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,24 +16,24 @@ import java.util.Map;
 import java.util.UUID;
 
 public interface IPaymentService {
+    ResponseEntity<InfoSavedPayment> saveNewPayment(NewPaymentDTO newPaymentDTO,
+                                                    @NotNull MultipartFile file) throws IOException;
+
+    ResponseEntity<InfoPaymentDTO> updatePaymentStatus(UUID paymentId, PaymentStatus newStatus);
+
+    byte[] getReceipt(UUID paymentId) throws IOException;
+
     List<InfoPaymentDTO> getAllPayments();
 
     List<InfoPaymentDTO> getPaymentsByStatus(PaymentStatus status);
-
-    ResponseEntity<InfoSavedPayment> newPayment(NewPaymentDTO newPaymentDTO,
-                                                MultipartFile file) throws IOException;
-
-    ResponseEntity<InfoPaymentDTO> paymentStatusUpdate(UUID id, PaymentStatus status);
-
-    byte[] getPaymentFile(UUID paymentId) throws IOException;
 
     List<InfoPaymentDTO> getPaymentsByType(PaymentType type);
 
     ResponseEntity<InfoPaymentDTO> getPaymentById(UUID paymentId);
 
-    ResponseEntity<List<InfoPaymentDTO>> getStudentPayments(String studentCode);
+    ResponseEntity<List<InfoPaymentDTO>> getStudentPayments(String code);
 
-    List<InfoStatusChangesDTO> getPaymentStatusChanges();
+    Page<InfoStatusChangesDTO> getPaymentsStatusChangers(String email, UUID paymentId, PaymentStatus newStatus, PaymentStatus oldStatus, int page, int size);
 
     Page<InfoAdminPaymentDTO> getPaymentsByCriteriaAsAdmin(String email, String code, Double min, Double max, PaymentStatus status, PaymentType type, int page, int size);
 
