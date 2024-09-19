@@ -179,15 +179,16 @@ public class PaymentService implements IPaymentService {
         }
 
         Map<Months, Long> countByMonth = new EnumMap<>(Months.class);
-        List<Long[]> counted = paymentRepository.countAllPaymentsGroupByDateAndOptionalMonth(month);
         if(month == null){
+            List<Long[]> counted = paymentRepository.countAllPaymentsGroupByDateAndOptionalMonth(month);
             int i = 0;
             for(Months months : Months.values()) {
                 countByMonth.put(months, counted.get(i)[1]);
                 i++;
             }
         } else {
-            countByMonth.put(Months.values()[month - 1], counted.get(0)[1]);
+            Long[] counted = paymentRepository.countPaymentsByMonth(month);
+            countByMonth.put(Months.values()[month - 1], counted[0]);
         }
 
         return ResponseEntity.ok(countByMonth);

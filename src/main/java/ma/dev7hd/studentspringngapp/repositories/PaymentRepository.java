@@ -49,4 +49,10 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
             nativeQuery = true)
     List<Long[]> countAllPaymentsGroupByDateAndOptionalMonth(@Param("month") Integer month);
 
+    @Query("SELECT MONTH(p.date) AS month, COUNT(p) AS count " +
+            "FROM Payment p " +
+            "WHERE MONTH(p.date) = :month " +
+            "GROUP BY MONTH(p.date)")
+    Long[] countPaymentsByMonth(@Param("month") Integer month);
+
 }
