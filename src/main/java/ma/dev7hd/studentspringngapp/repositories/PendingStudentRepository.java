@@ -11,7 +11,7 @@ import org.springframework.data.repository.query.Param;
 public interface PendingStudentRepository extends JpaRepository<PendingStudent, String> {
 
     @Query("SELECT a FROM PendingStudent a WHERE " +
-            "(:email IS NULL OR a.email = :email) ")
+            "(:email IS NULL OR a.email like :email%) ")
     Page<PendingStudent> findByPendingStudentsByFilter(
             @Param("email") String email,
             Pageable pageable);
