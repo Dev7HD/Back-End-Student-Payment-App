@@ -32,7 +32,6 @@ import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
-@Transactional
 public class PaymentService implements IPaymentService {
     private final UserRepository userRepository;
     private final AdminRepository adminRepository;
@@ -45,6 +44,7 @@ public class PaymentService implements IPaymentService {
     private static final Path PAYMENTS_FOLDER_PATH = Paths.get(System.getProperty("user.home"), "data", "payments");
 
     @Override
+    @Transactional
     public ResponseEntity<InfoSavedPayment> saveNewPayment(NewPaymentDTO newPaymentDTO,
                                                            @NotNull MultipartFile file) throws IOException {
         if (!Objects.equals(file.getContentType(), MediaType.APPLICATION_PDF_VALUE)) {
@@ -76,6 +76,7 @@ public class PaymentService implements IPaymentService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<InfoPaymentDTO> updatePaymentStatus(UUID paymentId, PaymentStatus newStatus) {
         Optional<Payment> optionalPayment = paymentRepository.findById(paymentId);
 

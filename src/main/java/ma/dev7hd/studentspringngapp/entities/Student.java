@@ -2,6 +2,7 @@ package ma.dev7hd.studentspringngapp.entities;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Pattern;
 import lombok.*;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
 import org.springframework.security.core.GrantedAuthority;
@@ -17,6 +18,9 @@ import java.util.*;
 @Setter
 public class Student extends User {
 
+    @Pattern(regexp = "[a-z]{1,2}[0-9]{4,8}+[a-z]?",
+            flags = Pattern.Flag.CASE_INSENSITIVE,
+            message = "Code invalid format")
     private String code;
 
     @Enumerated(EnumType.STRING)

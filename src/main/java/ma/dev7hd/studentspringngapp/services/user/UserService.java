@@ -44,7 +44,7 @@ public class UserService implements IUserService {
     private final BanedRegistrationRepository banedRegistrationRepository;
     private final INotificationService notificationMetier;
 
-    private final String defaultPassword = "123456";
+    private final String DEFAULT_PASSWORD = "123456";
 
     @Override
     public ResponseEntity<String> deleteUserByEmail(String email) {
@@ -282,7 +282,7 @@ public class UserService implements IUserService {
     private Student newStudentProcessing(Student student){
         student.setPasswordChanged(false);
         student.setEnabled(true);
-        student.setPassword(passwordEncoder.encode(defaultPassword));
+        student.setPassword(passwordEncoder.encode(DEFAULT_PASSWORD));
         Student.updateProgramCountsFromDB(student.getProgramId(),1.0);
         return student;
     }
@@ -300,7 +300,7 @@ public class UserService implements IUserService {
     private Admin newAdminProcessing(Admin admin){
         admin.setPasswordChanged(false);
         admin.setEnabled(true);
-        admin.setPassword(passwordEncoder.encode(defaultPassword));
+        admin.setPassword(passwordEncoder.encode(DEFAULT_PASSWORD));
         return admin;
     }
 
@@ -359,7 +359,7 @@ public class UserService implements IUserService {
 
     private ResponseEntity<String> processPasswordReset(User targetUser, String loggedInUserEmail) {
         if (!targetUser.getEmail().equals(loggedInUserEmail)) {
-            targetUser.setPassword(passwordEncoder.encode(defaultPassword));
+            targetUser.setPassword(passwordEncoder.encode(DEFAULT_PASSWORD));
             targetUser.setPasswordChanged(false);
             userRepository.save(targetUser);
             oldTokensProcessing(targetUser.getEmail());

@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface StudentRepository extends JpaRepository<Student,String> {
     List<Student> findStudentByProgramId(ProgramID programId);
@@ -34,6 +35,9 @@ public interface StudentRepository extends JpaRepository<Student,String> {
             Pageable pageable);
 
     Integer countByProgramId(ProgramID programId);
+
+    @Query("SELECT s.email, s.code FROM Student s")
+    Set<String> findAllEmailsAndCodes();
 
 }
 

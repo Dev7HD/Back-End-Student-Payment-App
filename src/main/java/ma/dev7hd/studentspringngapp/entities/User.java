@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -22,7 +23,9 @@ import java.util.List;
 @Builder
 public class User implements UserDetails {
     @Id
-    @Email(message = "Invalid email format")
+    @Email(regexp = "[a-z]{4}[a-z0-9._%+-]+@[a-z]{2,3}[a-z0-9.-]+\\.[a-z]{2,3}",
+            flags = Pattern.Flag.CASE_INSENSITIVE,
+            message = "Invalid email format")
     @NotBlank(message = "Email is mandatory")
     private String email;
 
