@@ -21,6 +21,6 @@ public class Notification {
     private boolean seen;
     private Date registerDate;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     private List<Admin> adminRemover  = new ArrayList<>();
 }

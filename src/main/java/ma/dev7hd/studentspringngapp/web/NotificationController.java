@@ -1,6 +1,5 @@
 package ma.dev7hd.studentspringngapp.web;
 
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import lombok.AllArgsConstructor;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.NotificationDTO;
 import ma.dev7hd.studentspringngapp.services.notification.INotificationService;
@@ -10,7 +9,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @CrossOrigin("*")
@@ -42,18 +40,17 @@ public class NotificationController {
     }
 
     @DeleteMapping("/delete-list")
-    public void deleteNotifications(@RequestBody Long[] notificationIds) throws ChangeSetPersister.NotFoundException {
+    public void deleteNotifications(@RequestBody List<Long> notificationIds) throws ChangeSetPersister.NotFoundException {
         iNotificationService.deleteNotifications(notificationIds);
     }
 
-    @PatchMapping("/mark-as-read")
-    public void markNotificationsAsRead(@RequestBody Long[] notificationIds) {
+    @PatchMapping("/mark-as-read-list")
+    public void markNotificationsAsRead(@RequestBody List<Long> notificationIds) {
         iNotificationService.markNotificationsAsRead(notificationIds);
     }
 
     @PatchMapping("/toggle-seen-list")
-    public void toggleNotifications(@RequestBody Map<String, List<Long>> notificationIds){
-        System.out.println(notificationIds.get("ids").size());
-        iNotificationService.toggleNotifications(notificationIds.get("ids"));
+    public void toggleNotifications(@RequestBody List<Long> notificationIds){
+        iNotificationService.toggleNotifications(notificationIds);
     }
 }

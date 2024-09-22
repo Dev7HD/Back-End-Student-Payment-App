@@ -18,7 +18,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -120,9 +119,9 @@ public class NotificationService implements INotificationService {
     }
 
     @Override
-    public void deleteNotifications(Long[] notificationIds) throws ChangeSetPersister.NotFoundException {
+    public void deleteNotifications(List<Long> notificationIds) throws ChangeSetPersister.NotFoundException {
         Admin admin = getCurrentAdmin();
-        List<Notification> notifications = getNotificationsByIds(Arrays.asList(notificationIds)).stream()
+        List<Notification> notifications = getNotificationsByIds(notificationIds).stream()
                 .filter(notification -> !notification.getAdminRemover().contains(admin))
                 .peek(notification -> notification.getAdminRemover().add(admin)).toList();
 
@@ -130,8 +129,8 @@ public class NotificationService implements INotificationService {
     }
 
     @Override
-    public void markNotificationsAsRead(Long[] notificationIds) {
-        List<Notification> notifications = getNotificationsByIds(Arrays.asList(notificationIds)).stream().filter(notification -> !notification.isSeen())
+    public void markNotificationsAsRead(List<Long> notificationIds) {
+        List<Notification> notifications = getNotificationsByIds(notificationIds).stream().filter(notification -> !notification.isSeen())
                 .peek(notification -> notification.setSeen(true)).toList();
         if(!notifications.isEmpty()) notificationRepository.saveAll(notifications);
     }

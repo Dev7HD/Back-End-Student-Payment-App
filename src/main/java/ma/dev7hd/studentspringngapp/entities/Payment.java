@@ -47,7 +47,7 @@ public class Payment {
     @JoinColumn(name = "student_id", nullable = false, updatable = false)
     private Student student;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "added_by", nullable = false, updatable = false)
     private User addedBy;
 

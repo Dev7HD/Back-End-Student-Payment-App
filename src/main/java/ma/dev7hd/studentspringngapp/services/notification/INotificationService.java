@@ -24,9 +24,9 @@ public interface INotificationService {
 
     Page<NotificationDTO> pageableNotifications(Boolean seen, int page, int size) throws ChangeSetPersister.NotFoundException;
 
-    void deleteNotifications(Long[] notificationIds) throws ChangeSetPersister.NotFoundException;
+    void deleteNotifications(List<Long> notificationIds) throws ChangeSetPersister.NotFoundException;
 
-    void markNotificationsAsRead(Long[] notificationIds);
+    void markNotificationsAsRead(List<Long> notificationIds);
 
     void toggleNotifications(List<Long> notificationIds);
 }
