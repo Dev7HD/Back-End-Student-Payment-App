@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentStatus;
 
+import java.util.Date;
 import java.util.UUID;
 
 @Getter @Setter
@@ -13,4 +14,5 @@ public class InfoStatusChangesDTO {
     private UUID paymentId;
     private PaymentStatus newStatus;
     private PaymentStatus oldStatus;
+    private Date changeDate;
 }

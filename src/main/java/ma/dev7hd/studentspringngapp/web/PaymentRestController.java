@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import lombok.AllArgsConstructor;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.*;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewPaymentDTO;
+import ma.dev7hd.studentspringngapp.dtos.otherDTOs.UpdatePaymentStatus;
 import ma.dev7hd.studentspringngapp.enumirat.Months;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentStatus;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentType;
@@ -177,6 +178,11 @@ public class PaymentRestController {
     @GetMapping("/statistics-by-mount")
     public ResponseEntity<Map<Months, Long>> getPaymentsByMonth(@RequestParam(required = false) Integer month) {
         return iPaymentService.getPaymentsByMonth(month);
+    }
+
+    @PatchMapping("/list/update-status")
+    public void updatePaymentsStatus(@RequestBody UpdatePaymentStatus updatePaymentStatus){
+        iPaymentService.updatePaymentsStatus(updatePaymentStatus);
     }
 
 }

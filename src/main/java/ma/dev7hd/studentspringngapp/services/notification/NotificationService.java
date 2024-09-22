@@ -145,18 +145,6 @@ public class NotificationService implements INotificationService {
         }
     }
 
-    /*private List<Notification> getNotificationsById(Long[] notificationIds){
-        System.out.println("GET NOTIFICATIONS BY ID");
-        List<Notification> allNotifications = new ArrayList<>();
-        System.out.println("LIST INITIALISATION");
-        for (Long notificationId : notificationIds) {
-            System.out.println("GET NOTIFICATION BY ID: " + notificationId);
-            notificationRepository.findById(notificationId).ifPresent(allNotifications::add);
-        }
-        System.out.println("NOTIFICATION SIZE: " + allNotifications.size());
-        return allNotifications;
-    }*/
-
     private List<Notification> getNotificationsByIds(List<Long> notificationIds) {
         return notificationRepository.findAllById(notificationIds);
     }

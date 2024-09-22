@@ -3,6 +3,7 @@ package ma.dev7hd.studentspringngapp.services.payment;
 import lombok.AllArgsConstructor;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.*;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewPaymentDTO;
+import ma.dev7hd.studentspringngapp.dtos.otherDTOs.UpdatePaymentStatus;
 import ma.dev7hd.studentspringngapp.entities.*;
 import ma.dev7hd.studentspringngapp.enumirat.Months;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentStatus;
@@ -191,9 +192,34 @@ public class PaymentService implements IPaymentService {
             Long[] counted = paymentRepository.countPaymentsByMonth(month);
             countByMonth.put(Months.values()[month - 1], counted[0]);
         }
-
         return ResponseEntity.ok(countByMonth);
+    }
 
+    @Override
+    public void updatePaymentsStatus(UpdatePaymentStatus updatePaymentStatus){
+        Optional<Admin> currentAdmin = getCurrentAdmin();
+        List<Payment> allPayments = paymentRepository.findAllById(updatePaymentStatus.getIds());
+        if (currentAdmin.isPresent() && !allPayments.isEmpty()){
+            Admin admin = currentAdmin.get();
+            List<Payment> payments = allPayments.stream()
+                    .filter(payment -> payment.getStatus() != updatePaymentStatus.getNewPaymentStatus())
+                    .toList();
+            List<PaymentStatusChange> paymentStatusChanges = new ArrayList<>();
+            payments.forEach(payment -> {
+                PaymentStatus oldStatus = payment.getStatus();
+                PaymentStatusChange paymentStatusChange = PaymentStatusChange.builder()
+                        .payment(payment)
+                        .admin(admin)
+                        .changeDate(new Date())
+                        .newStatus(updatePaymentStatus.getNewPaymentStatus())
+                        .oldStatus(oldStatus)
+                        .build();
+                paymentStatusChanges.add(paymentStatusChange);
+                payment.setStatus(updatePaymentStatus.getNewPaymentStatus());
+            });
+            paymentRepository.saveAll(payments);
+            paymentStatusChangeRepository.saveAll(paymentStatusChanges);
+        }
     }
 
     // Private methods
@@ -239,8 +265,7 @@ public class PaymentService implements IPaymentService {
     }
 
     private ResponseEntity<InfoPaymentDTO> processPaymentStatusUpdate(Payment payment, PaymentStatus newStatus) {
-        String currentUserEmail = getCurrentUserEmail();
-        Optional<Admin> optionalAdmin = adminRepository.findById(currentUserEmail);
+        Optional<Admin> optionalAdmin = getCurrentAdmin();
         PaymentStatus oldStatus = payment.getStatus();
         if (optionalAdmin.isPresent()) {
             payment.setStatus(newStatus);
@@ -297,6 +322,11 @@ public class PaymentService implements IPaymentService {
     private Optional<User> getCurrentUser() {
         String userEmail = getCurrentUserEmail();
         return userRepository.findByEmail(userEmail);
+    }
+
+    private Optional<Admin> getCurrentAdmin() {
+        String userEmail = getCurrentUserEmail();
+        return adminRepository.findById(userEmail);
     }
 
     private String getCurrentUserEmail() {

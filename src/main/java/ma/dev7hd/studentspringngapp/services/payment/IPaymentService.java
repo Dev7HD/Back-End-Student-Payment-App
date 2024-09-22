@@ -2,6 +2,7 @@ package ma.dev7hd.studentspringngapp.services.payment;
 
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.*;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewPaymentDTO;
+import ma.dev7hd.studentspringngapp.dtos.otherDTOs.UpdatePaymentStatus;
 import ma.dev7hd.studentspringngapp.enumirat.Months;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentStatus;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentType;
@@ -41,4 +42,5 @@ public interface IPaymentService {
 
     ResponseEntity<Map<Months, Long>> getPaymentsByMonth(Integer month);
 
+    void updatePaymentsStatus(UpdatePaymentStatus updatePaymentStatus);
 }
