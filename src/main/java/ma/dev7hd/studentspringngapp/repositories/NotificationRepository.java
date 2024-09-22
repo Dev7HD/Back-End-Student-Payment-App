@@ -21,4 +21,5 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
             "(:seen IS NULL OR n.seen = :seen)" +
             "ORDER BY n.registerDate")
     Page<Notification> findAllWithPagination(Admin admin, Boolean seen, Pageable pageable);
+
 }

@@ -22,5 +22,5 @@ public class Notification {
     private Date registerDate;
 
     @ManyToMany
-    private List<Admin> adminRemover  = new ArrayList<>();;
+    private List<Admin> adminRemover  = new ArrayList<>();
 }

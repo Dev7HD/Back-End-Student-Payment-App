@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.data.domain.Page;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface INotificationService {
@@ -22,4 +23,10 @@ public interface INotificationService {
     void notificationSeen(UUID paymentId, String email);
 
     Page<NotificationDTO> pageableNotifications(Boolean seen, int page, int size) throws ChangeSetPersister.NotFoundException;
+
+    void deleteNotifications(Long[] notificationIds) throws ChangeSetPersister.NotFoundException;
+
+    void markNotificationsAsRead(Long[] notificationIds);
+
+    void toggleNotifications(List<Long> notificationIds);
 }
