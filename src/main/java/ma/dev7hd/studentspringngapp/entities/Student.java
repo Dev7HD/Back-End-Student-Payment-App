@@ -26,7 +26,7 @@ public class Student extends User {
     @Enumerated(EnumType.STRING)
     private ProgramID programId;
 
-    @OneToMany(mappedBy = "student", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "student", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private List<Payment> payments;
 

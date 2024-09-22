@@ -20,8 +20,8 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
     List<Payment> findByType(PaymentType paymentType);
 
     @Query("SELECT p FROM Payment p WHERE " +
-            "(:code = '' OR p.student.code = :code) AND " +
-            "(:email = '' OR p.student.email = :email) AND " +
+            "(:code = '' OR :code = NULL OR p.student.code = :code) AND " +
+            "(:email = '' OR :email = NULL OR p.student.email = :email) AND " +
             "((:min IS NULL AND :max IS NULL) OR " +
             "(:min IS NOT NULL AND :max IS NOT NULL AND p.amount BETWEEN :min AND :max) OR " +
             "(:min IS NOT NULL AND :max IS NULL AND p.amount >= :min) OR " +
