@@ -12,11 +12,14 @@ import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
 
 public interface IUserService {
+
+    @Transactional
     ResponseEntity<String> deleteUserByEmail(String email);
 
     List<InfosStudentDTO> getAllStudents();
@@ -27,12 +30,16 @@ public interface IUserService {
 
     List<InfosStudentDTO> getStudentByProgram(ProgramID programID);
 
+    @Transactional
     ResponseEntity<NewAdminDTO> saveAdmin(@NotNull NewAdminDTO newAdminDTO);
 
+    @Transactional
     ResponseEntity<NewStudentDTO> saveStudent(@NotNull NewStudentDTO studentDTO);
 
+    @Transactional
     ResponseEntity<String> changePW(@NotNull ChangePWDTO pwDTO);
 
+    @Transactional
     ResponseEntity<String> resetPW(String targetUserEmail);
 
     List<InfosAdminDTO> getAdmins();
@@ -45,14 +52,16 @@ public interface IUserService {
 
     Page<PendingStudent> getPendingStudent(String email, int page, int size);
 
-
+    @Transactional
     ResponseEntity<?> approvingStudentRegistration(@NotNull String email);
 
+    @Transactional
     ResponseEntity<String> declineStudentRegistration(@NotNull String email);
 
-
+    @Transactional
     ResponseEntity<String> toggleEnableUserAccount(String email);
 
+    @Transactional
     ResponseEntity<String> banStudentRegistration(@NotNull String email);
 
     ResponseEntity<InfosStudentDTO> updateStudentInfo(@NotNull InfosStudentDTO studentDTO);
@@ -60,4 +69,16 @@ public interface IUserService {
     Map<ProgramID, List<Double>> getProgramIdCounts();
 
     ResponseEntity<PendingStudent> getPendingStudentByEmail(String email);
+
+    @Transactional
+    ResponseEntity<String> approveMultipleRegistrations(List<String> emails);
+
+    @Transactional
+    ResponseEntity<String> banMultipleRegistrations(List<String> emails);
+
+    @Transactional
+    void declineMultipleRegistrations(List<String> emails);
+
+    @Transactional
+    ResponseEntity<String> deleteMultipleUsers(List<String> emails);
 }

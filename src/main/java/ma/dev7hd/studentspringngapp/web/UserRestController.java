@@ -238,4 +238,24 @@ public class UserRestController {
         return iLoadStudentsService.uploadStudentFile(file);
     }
 
+    @PostMapping("/pending-students/approve-selection")
+    public ResponseEntity<String> approveMultipleRegistrations(@RequestBody List<String> emails){
+        return iUserService.approveMultipleRegistrations(emails);
+    }
+
+    @PostMapping("/pending-students/ban-selection")
+    ResponseEntity<String> banMultipleRegistrations(@RequestBody List<String> emails){
+        return iUserService.banMultipleRegistrations(emails);
+    }
+
+    @PostMapping("/pending-students/decline-selection")
+    void declineMultipleRegistrations(@RequestBody List<String> emails){
+        iUserService.declineMultipleRegistrations(emails);
+    }
+
+    @DeleteMapping("delete-selection")
+    public ResponseEntity<String> deleteMultipleUsers(@RequestBody List<String> emails){
+        return iUserService.deleteMultipleUsers(emails);
+    }
+
 }

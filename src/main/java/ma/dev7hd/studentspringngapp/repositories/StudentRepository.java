@@ -36,8 +36,11 @@ public interface StudentRepository extends JpaRepository<Student,String> {
 
     Integer countByProgramId(ProgramID programId);
 
-    @Query("SELECT s.email, s.code FROM Student s")
-    Set<String> findAllEmailsAndCodes();
+    @Query("SELECT s.email FROM Student s")
+    Set<String> findAllEmails();
+
+    @Query("SELECT s.code FROM Student s")
+    Set<String> findAllCodes();
 
 }
 

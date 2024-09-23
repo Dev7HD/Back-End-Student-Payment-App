@@ -23,10 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @AllArgsConstructor
@@ -47,6 +44,7 @@ public class UserService implements IUserService {
     private final String DEFAULT_PASSWORD = "123456";
 
     @Override
+    @Transactional
     public ResponseEntity<String> deleteUserByEmail(String email) {
         Optional<User> optionalUser = userRepository.findById(email);
         if (optionalUser.isPresent()) {
@@ -101,6 +99,7 @@ public class UserService implements IUserService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<NewAdminDTO> saveAdmin(@NotNull NewAdminDTO newAdminDTO) {
         Admin admin = newAdminProcessing(modelMapper.map(newAdminDTO, Admin.class));
         userRepository.save(admin);
@@ -108,6 +107,7 @@ public class UserService implements IUserService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<NewStudentDTO> saveStudent(@NotNull NewStudentDTO studentDTO) {
         Student student = newStudentProcessing(modelMapper.map(studentDTO, Student.class));
         userRepository.save(student);
@@ -115,6 +115,7 @@ public class UserService implements IUserService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<String> changePW(@NotNull ChangePWDTO pwDTO){
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Optional<User> optionalUser = userRepository.findByEmail(userEmail);
@@ -127,6 +128,7 @@ public class UserService implements IUserService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<String> resetPW(String targetUserEmail){
         Optional<User> optionalTargetUser = userRepository.findByEmail(targetUserEmail);
         String loggedInUserEmail = getCurrentUserEmail();
@@ -157,6 +159,7 @@ public class UserService implements IUserService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<String> registerStudent(@NotNull NewPendingStudentDTO pendingStudentDTO){
         boolean userIsExistByEmail = userRepository.existsById(pendingStudentDTO.getEmail());
         boolean studentExistByCode = studentRepository.existsByCode(pendingStudentDTO.getCode());
@@ -191,6 +194,7 @@ public class UserService implements IUserService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<?> approvingStudentRegistration(@NotNull String email){
         Optional<PendingStudent> optionalPendingStudent = pendingStudentRepository.findById(email);
         if (optionalPendingStudent.isPresent()) {
@@ -208,6 +212,7 @@ public class UserService implements IUserService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<String> declineStudentRegistration(@NotNull String email){
         Optional<PendingStudent> optionalPendingStudent = pendingStudentRepository.findById(email);
         if (optionalPendingStudent.isPresent()) {
@@ -219,6 +224,7 @@ public class UserService implements IUserService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<String> toggleEnableUserAccount(String email){
         Optional<User> optionalUser = userRepository.findById(email);
         if (optionalUser.isPresent()){
@@ -256,6 +262,7 @@ public class UserService implements IUserService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<InfosStudentDTO> updateStudentInfo(@NotNull InfosStudentDTO studentDTO){
         Optional<Student> optionalStudent = studentRepository.findById(studentDTO.getEmail());
         if (optionalStudent.isPresent()) {
@@ -275,6 +282,128 @@ public class UserService implements IUserService {
     @Override
     public Map<ProgramID, List<Double>> getProgramIdCounts(){
         return Student.programIDCounter;
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<String> approveMultipleRegistrations(List<String> emails){
+        try {
+            List<PendingStudent> allPendingStudents = pendingStudentRepository.findAllById(emails);
+            StringBuilder message = new StringBuilder();
+            if(allPendingStudents.isEmpty()) {
+                message.append("No registration was approved. Registrations provided doesn't exist!");
+                return ResponseEntity.ok(message.toString());
+            }
+            Set<String> allEmails = studentRepository.findAllEmails();
+            Set<String> allCodes = studentRepository.findAllCodes();
+
+            List<Student> studentsToApprove = allPendingStudents.stream()
+                    .filter(registration ->
+                            !allEmails.contains(registration.getEmail()) &&
+                            !allCodes.contains(registration.getCode())
+                    ).map(registration -> {
+                        Student student = new Student();
+                        student.setEmail(registration.getEmail());
+                        student.setFirstName(registration.getFirstName());
+                        student.setLastName(registration.getLastName());
+                        student.setEnabled(true);
+                        student.setCode(registration.getCode());
+                        student.setPassword(passwordEncoder.encode(DEFAULT_PASSWORD));
+                        student.setPasswordChanged(false);
+                        student.setProgramId(registration.getProgramID());
+                        return student;
+                    })
+                    .toList();
+
+            studentRepository.saveAll(studentsToApprove);
+
+            List<String> registrationsEmails = studentsToApprove.stream()
+                    .map(Student::getEmail)
+                    .toList();
+
+            pendingStudentRepository.deleteAllById(registrationsEmails);
+
+            int approvedCount = studentsToApprove.size();
+            int foundCount = allPendingStudents.size();
+            int totalProvided = emails.size();
+
+
+            if (approvedCount == 0) {
+                message.append("No registration was approved!");
+            } else if (approvedCount < foundCount && foundCount < totalProvided) {
+                message.append(approvedCount).append(" registration(s) approved, ")
+                        .append(foundCount - approvedCount).append(" cannot be approved, ")
+                        .append(totalProvided - foundCount).append(" not found.");
+            } else if (approvedCount < foundCount && foundCount == totalProvided) {
+                message.append(approvedCount).append(" registration(s) approved, ")
+                        .append(foundCount - approvedCount).append(" cannot be approved.");
+            } else if (approvedCount == foundCount && approvedCount < totalProvided) {
+                message.append(approvedCount).append(" registration(s) approved, ")
+                        .append(totalProvided - approvedCount).append(" not found.");
+            } else {
+                message.append("All selected registrations were approved.");
+            }
+
+            return ResponseEntity.ok(message.toString());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error processing registrations: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public ResponseEntity<String> banMultipleRegistrations(List<String> emails){
+        try{
+
+            List<PendingStudent> pendingStudents = pendingStudentRepository.findAllById(emails);
+            if(pendingStudents.isEmpty()) return ResponseEntity.badRequest().body("No registration was found!");
+            Optional<Admin> currentAdmin = getCurrentAdmin();
+            if(currentAdmin.isPresent()){
+                Admin admin = currentAdmin.get();
+                List<BanedRegistration> registrationsToBan = pendingStudents.stream()
+                        .map(pendingStudent -> BanedRegistration.builder()
+                                .banDate(new Date())
+                                .registerDate(pendingStudent.getRegisterDate())
+                                .code(pendingStudent.getCode())
+                                .email(pendingStudent.getEmail())
+                                .firstName(pendingStudent.getFirstName())
+                                .lastName(pendingStudent.getLastName())
+                                .programID(pendingStudent.getProgramID())
+                                .adminBanner(admin)
+                                .build())
+                        .toList();
+                banedRegistrationRepository.saveAll(registrationsToBan);
+                pendingStudentRepository.deleteAll(pendingStudents);
+                return ResponseEntity.ok(pendingStudents.size() + " registration(s) was banned.");
+            }
+            return ResponseEntity.badRequest().body("The request must be done by a valid admin.");
+
+        } catch (Exception e){
+            return ResponseEntity.badRequest().body("Ban registrations error: " + e.getMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public void declineMultipleRegistrations(List<String> emails){
+        try {
+            pendingStudentRepository.deleteAllById(emails);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<String> deleteMultipleUsers(List<String> emails){
+        List<User> users = userRepository.findAllById(emails);
+        if (users.isEmpty()) return ResponseEntity.badRequest().body("Emails provided not valid.");
+        userRepository.deleteAll(users);
+        StringBuilder message = new StringBuilder();
+        int providedCount = emails.size();
+        int usersFoundCount = users.size();
+        if (providedCount == usersFoundCount) message.append("All provided users was successfully deleted.");
+        else message.append(usersFoundCount).append(" was deleted and ").append(providedCount - usersFoundCount).append(" not didn't.");
+        return ResponseEntity.ok(message.toString());
     }
 
     //PRIVATE METHODS
@@ -370,6 +499,10 @@ public class UserService implements IUserService {
 
     private String getCurrentUserEmail() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
+    }
+
+    private Optional<Admin> getCurrentAdmin(){
+        return adminRepository.findById(getCurrentUserEmail());
     }
 
     private void seenNewRegistration(List<PendingStudent> pendingStudents){

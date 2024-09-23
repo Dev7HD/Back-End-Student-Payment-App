@@ -165,10 +165,14 @@ public class LoadStudentsService implements ILoadStudentsService {
     }
 
     private Map<String, Integer> saveStudentsToDatabase(List<NewStudentDTO> students) {
-        Set<String> existingEmailsAndCodes = studentRepository.findAllEmailsAndCodes();
+        Set<String> allEmails = studentRepository.findAllEmails();
+        Set<String> allCodes = studentRepository.findAllCodes();
 
         List<Student> studentEntities = students.stream()
-                .filter(dto -> !existingEmailsAndCodes.toString().contains(dto.getEmail()) && !existingEmailsAndCodes.toString().contains(dto.getCode()))
+                .filter(dto ->
+                        !allEmails.contains(dto.getEmail()) &&
+                                !allCodes.contains(dto.getCode())
+                )
                 .map(dto -> {
                     Student student = new Student();
                     student.setEmail(dto.getEmail());
@@ -181,7 +185,8 @@ public class LoadStudentsService implements ILoadStudentsService {
                     student.setEnabled(true);
                     Student.updateProgramCountsFromDB(student.getProgramId(),1.0);
                     return student;
-                }).collect(Collectors.toList());
+                })
+                .collect(Collectors.toList());
 
         if (!studentEntities.isEmpty()) {
             studentRepository.saveAll(studentEntities);  // Batch save
