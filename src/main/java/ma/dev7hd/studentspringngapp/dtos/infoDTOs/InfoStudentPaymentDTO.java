@@ -5,6 +5,7 @@ import ma.dev7hd.studentspringngapp.enumirat.PaymentStatus;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentType;
 
 import java.util.Date;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -12,6 +13,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class InfoStudentPaymentDTO {
+    private UUID id;
     private double amount;
     private Date date;
     private PaymentType type;
