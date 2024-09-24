@@ -258,4 +258,9 @@ public class UserRestController {
         return iUserService.deleteMultipleUsers(emails);
     }
 
+    @PutMapping("/multiple/reset-pw")
+    public ResponseEntity<String> resetPasswordToMultipleUsers(@RequestBody List<String> emails) {
+        return iUserService.resetPasswordToMultipleUsers(emails);
+    }
+
 }

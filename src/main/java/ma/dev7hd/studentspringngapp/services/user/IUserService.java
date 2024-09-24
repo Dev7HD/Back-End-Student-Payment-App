@@ -81,4 +81,6 @@ public interface IUserService {
 
     @Transactional
     ResponseEntity<String> deleteMultipleUsers(List<String> emails);
+
+    ResponseEntity<String> resetPasswordToMultipleUsers(List<String> emails);
 }

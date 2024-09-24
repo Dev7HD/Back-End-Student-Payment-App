@@ -406,6 +406,14 @@ public class UserService implements IUserService {
         return ResponseEntity.ok(message.toString());
     }
 
+    @Override
+    public ResponseEntity<String> resetPasswordToMultipleUsers(List<String> emails) {
+        List<User> users = userRepository.findAllById(emails);
+        users.forEach(user -> user.setPassword(passwordEncoder.encode(DEFAULT_PASSWORD)));
+        userRepository.saveAll(users);
+        return ResponseEntity.ok(users.size() + " password(s) has been reset successfully.");
+    }
+
     //PRIVATE METHODS
 
     private Student newStudentProcessing(Student student){
