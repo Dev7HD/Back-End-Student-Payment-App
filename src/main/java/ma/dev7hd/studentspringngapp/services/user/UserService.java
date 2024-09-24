@@ -24,6 +24,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -42,6 +46,8 @@ public class UserService implements IUserService {
     private final INotificationService notificationMetier;
 
     private final String DEFAULT_PASSWORD = "123456";
+    private final ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+
 
     @Override
     @Transactional
@@ -286,47 +292,51 @@ public class UserService implements IUserService {
 
     @Override
     @Transactional
-    public ResponseEntity<String> approveMultipleRegistrations(List<String> emails){
+    public ResponseEntity<String> approveMultipleRegistrations(List<String> emails) {
         try {
             List<PendingStudent> allPendingStudents = pendingStudentRepository.findAllById(emails);
             StringBuilder message = new StringBuilder();
-            if(allPendingStudents.isEmpty()) {
+            if (allPendingStudents.isEmpty()) {
                 message.append("No registration was approved. Registrations provided doesn't exist!");
                 return ResponseEntity.ok(message.toString());
             }
+
             Set<String> allEmails = studentRepository.findAllEmails();
             Set<String> allCodes = studentRepository.findAllCodes();
 
-            List<Student> studentsToApprove = allPendingStudents.stream()
-                    .filter(registration ->
-                            !allEmails.contains(registration.getEmail()) &&
-                            !allCodes.contains(registration.getCode())
-                    ).map(registration -> {
-                        Student student = new Student();
-                        student.setEmail(registration.getEmail());
-                        student.setFirstName(registration.getFirstName());
-                        student.setLastName(registration.getLastName());
-                        student.setEnabled(true);
-                        student.setCode(registration.getCode());
-                        student.setPassword(passwordEncoder.encode(DEFAULT_PASSWORD));
-                        student.setPasswordChanged(false);
-                        student.setProgramId(registration.getProgramID());
-                        return student;
-                    })
-                    .toList();
+            // Parallel processing for approving registrations
+            CompletableFuture<List<Student>> approveFuture = CompletableFuture.supplyAsync(() -> {
+                return allPendingStudents.parallelStream()
+                        .filter(registration ->
+                                !allEmails.contains(registration.getEmail()) &&
+                                        !allCodes.contains(registration.getCode())
+                        ).map(registration -> {
+                            Student student = new Student();
+                            student.setEmail(registration.getEmail());
+                            student.setFirstName(registration.getFirstName());
+                            student.setLastName(registration.getLastName());
+                            student.setEnabled(true);
+                            student.setCode(registration.getCode());
+                            student.setPassword(passwordEncoder.encode(DEFAULT_PASSWORD));
+                            student.setPasswordChanged(false);
+                            student.setProgramId(registration.getProgramID());
+                            return student;
+                        }).collect(Collectors.toList());
+            }, executorService);
+
+            List<Student> studentsToApprove = approveFuture.join(); // Wait for completion
 
             studentRepository.saveAll(studentsToApprove);
 
             List<String> registrationsEmails = studentsToApprove.stream()
                     .map(Student::getEmail)
-                    .toList();
+                    .collect(Collectors.toList());
 
             pendingStudentRepository.deleteAllById(registrationsEmails);
 
             int approvedCount = studentsToApprove.size();
             int foundCount = allPendingStudents.size();
             int totalProvided = emails.size();
-
 
             if (approvedCount == 0) {
                 message.append("No registration was approved!");
@@ -351,33 +361,41 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public ResponseEntity<String> banMultipleRegistrations(List<String> emails){
-        try{
-
+    public ResponseEntity<String> banMultipleRegistrations(List<String> emails) {
+        try {
             List<PendingStudent> pendingStudents = pendingStudentRepository.findAllById(emails);
-            if(pendingStudents.isEmpty()) return ResponseEntity.badRequest().body("No registration was found!");
+            if (pendingStudents.isEmpty()) return ResponseEntity.badRequest().body("No registration was found!");
+
             Optional<Admin> currentAdmin = getCurrentAdmin();
-            if(currentAdmin.isPresent()){
+            if (currentAdmin.isPresent()) {
                 Admin admin = currentAdmin.get();
-                List<BanedRegistration> registrationsToBan = pendingStudents.stream()
-                        .map(pendingStudent -> BanedRegistration.builder()
-                                .banDate(new Date())
-                                .registerDate(pendingStudent.getRegisterDate())
-                                .code(pendingStudent.getCode())
-                                .email(pendingStudent.getEmail())
-                                .firstName(pendingStudent.getFirstName())
-                                .lastName(pendingStudent.getLastName())
-                                .programID(pendingStudent.getProgramID())
-                                .adminBanner(admin)
-                                .build())
-                        .toList();
-                banedRegistrationRepository.saveAll(registrationsToBan);
-                pendingStudentRepository.deleteAll(pendingStudents);
+
+                // Parallel processing for banning registrations
+                CompletableFuture<Void> banFuture = CompletableFuture.runAsync(() -> {
+                    List<BanedRegistration> registrationsToBan = pendingStudents.parallelStream()
+                            .map(pendingStudent -> BanedRegistration.builder()
+                                    .banDate(new Date())
+                                    .registerDate(pendingStudent.getRegisterDate())
+                                    .code(pendingStudent.getCode())
+                                    .email(pendingStudent.getEmail())
+                                    .firstName(pendingStudent.getFirstName())
+                                    .lastName(pendingStudent.getLastName())
+                                    .programID(pendingStudent.getProgramID())
+                                    .adminBanner(admin)
+                                    .build())
+                            .collect(Collectors.toList());
+
+                    banedRegistrationRepository.saveAll(registrationsToBan);
+                    pendingStudentRepository.deleteAll(pendingStudents);
+                }, executorService);
+
+                banFuture.join(); // Wait for completion
+
                 return ResponseEntity.ok(pendingStudents.size() + " registration(s) was banned.");
             }
             return ResponseEntity.badRequest().body("The request must be done by a valid admin.");
 
-        } catch (Exception e){
+        } catch (Exception e) {
             return ResponseEntity.badRequest().body("Ban registrations error: " + e.getMessage());
         }
     }

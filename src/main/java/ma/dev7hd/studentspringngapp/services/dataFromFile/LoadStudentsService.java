@@ -32,9 +32,7 @@ public class LoadStudentsService implements ILoadStudentsService {
 
     private final String DEFAULT_PASSWORD = "123456";
     private final List<String> DOC_HEADER = List.of("email", "firstName", "lastName", "code", "programId");
-
-    // Define a thread pool with a fixed number of threads
-    private final ExecutorService executorService = Executors.newFixedThreadPool(10);
+    private final ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
     @Transactional
     @Override
