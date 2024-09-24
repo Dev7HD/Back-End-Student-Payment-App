@@ -1,5 +1,6 @@
 package ma.dev7hd.studentspringngapp;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import ma.dev7hd.studentspringngapp.entities.Admin;
 import ma.dev7hd.studentspringngapp.entities.Payment;
 import ma.dev7hd.studentspringngapp.entities.Student;
@@ -24,12 +25,19 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @EnableScheduling
 @SpringBootApplication
 public class StudentSpringNgAppApplication {
 
     public static void main(String[] args) {
+        Dotenv dotenv = Dotenv.load();
+
+        System.setProperty("DB_URL", Objects.requireNonNull(dotenv.get("DB_URL")));
+        System.setProperty("DB_USERNAME", Objects.requireNonNull(dotenv.get("DB_USERNAME")));
+        System.setProperty("DB_PASSWORD", Objects.requireNonNull(dotenv.get("DB_PASSWORD")));
+
         SpringApplication.run(StudentSpringNgAppApplication.class, args);
     }
 
