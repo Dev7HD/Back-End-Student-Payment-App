@@ -17,6 +17,10 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -28,6 +32,9 @@ public class LoadStudentsService implements ILoadStudentsService {
 
     private final String DEFAULT_PASSWORD = "123456";
     private final List<String> DOC_HEADER = List.of("email", "firstName", "lastName", "code", "programId");
+
+    // Define a thread pool with a fixed number of threads
+    private final ExecutorService executorService = Executors.newFixedThreadPool(10);
 
     @Transactional
     @Override
@@ -49,27 +56,34 @@ public class LoadStudentsService implements ILoadStudentsService {
             return ResponseEntity.badRequest().body("Invalid table headers.");
         }
 
-        List<NewStudentDTO> students;
+        List<NewStudentDTO> students = new ArrayList<>();
         List<Integer> errorRowIndexes = new ArrayList<>();
 
-        // Process Excel rows in parallel
-        students = IntStream.range(1, sheet.getLastRowNum() + 1)
-                .mapToObj(sheet::getRow)
-                .filter(row -> {
+        // Create tasks for processing rows in parallel using CompletableFuture
+        List<CompletableFuture<NewStudentDTO>> futures = IntStream.range(1, sheet.getLastRowNum() + 1)
+                .mapToObj(i -> CompletableFuture.supplyAsync(() -> {
+                    Row row = sheet.getRow(i);
                     if (!validateRow(row)) {
                         errorRowIndexes.add(row.getRowNum());
-                        return false;
+                        return null;
                     }
-                    return true;
-                })
-                .map(this::processExcelRow)
-                .collect(Collectors.toList());
+                    return processExcelRow(row);
+                }, executorService))
+                .toList();
+
+        // Collect results from the futures
+        for (CompletableFuture<NewStudentDTO> future : futures) {
+            NewStudentDTO studentDTO = future.get(); // This will wait for each thread to complete
+            if (studentDTO != null) {
+                students.add(studentDTO);
+            }
+        }
 
         if (students.isEmpty()) {
             return ResponseEntity.badRequest().body("No students found.");
         }
 
-        Map<String, Integer> statistics = saveStudentsToDatabase(students);
+        Map<String, Integer> statistics = saveStudentsToDatabaseParallel(students);
 
         String savedMessage;
         if (statistics.get("saved") == 0) {
@@ -101,6 +115,44 @@ public class LoadStudentsService implements ILoadStudentsService {
         return ResponseEntity.ok(savedMessage + " " + timeSpent + existedMessage + rowErrorMessage);
     }
 
+    private Map<String, Integer> saveStudentsToDatabaseParallel(List<NewStudentDTO> students) throws InterruptedException, ExecutionException {
+        Set<String> allEmails = studentRepository.findAllEmails();
+        Set<String> allCodes = studentRepository.findAllCodes();
+
+        // Create a list to hold the future results
+        List<CompletableFuture<Student>> futures = students.stream()
+                .filter(dto -> !allEmails.contains(dto.getEmail()) && !allCodes.contains(dto.getCode()))
+                .map(dto -> CompletableFuture.supplyAsync(() -> {
+                    Student student = new Student();
+                    student.setEmail(dto.getEmail());
+                    student.setFirstName(dto.getFirstName());
+                    student.setLastName(dto.getLastName());
+                    student.setCode(dto.getCode());
+                    student.setProgramId(dto.getProgramId());
+                    student.setPassword(passwordEncoder.encode(DEFAULT_PASSWORD));
+                    student.setPasswordChanged(false);
+                    student.setEnabled(true);
+                    Student.updateProgramCountsFromDB(student.getProgramId(), 1.0);
+                    return student;
+                }, executorService))
+                .toList();
+
+        // Wait for all the tasks to finish and collect the results
+        List<Student> studentEntities = futures.stream()
+                .map(CompletableFuture::join)
+                .collect(Collectors.toList());
+
+        if (!studentEntities.isEmpty()) {
+            studentRepository.saveAll(studentEntities);  // Batch save
+        }
+
+        Map<String, Integer> statistics = new HashMap<>();
+        statistics.put("saved", studentEntities.size());
+        statistics.put("existed", (students.size() - studentEntities.size()));
+
+        return statistics;
+    }
+
     private static String getTimeSpent(Duration duration) {
         long hours = duration.toHours();
         long minutes = duration.toMinutesPart();
@@ -116,14 +168,14 @@ public class LoadStudentsService implements ILoadStudentsService {
         }
     }
 
-    private String getRowErrorMessage(List<Integer> errorRowIndexs) {
-        if (errorRowIndexs.size() > 20) {
-            return errorRowIndexs.size() + " Excel rows have invalid data and weren't saved.";
-        } else if (errorRowIndexs.size() > 1) {
-            return "Due to invalid data, " + errorRowIndexs.size() + " records weren't saved. Rows: " +
-                    errorRowIndexs.stream().map(String::valueOf).collect(Collectors.joining(", "));
-        } else if (errorRowIndexs.size() == 1) {
-            return "Due to invalid data, one record wasn't saved. Row: " + errorRowIndexs.get(0);
+    private String getRowErrorMessage(List<Integer> errorRowIndexes) {
+        if (errorRowIndexes.size() > 20) {
+            return errorRowIndexes.size() + " Excel rows have invalid data and weren't saved.";
+        } else if (errorRowIndexes.size() > 1) {
+            return "Due to invalid data, " + errorRowIndexes.size() + " records weren't saved. Rows: " +
+                    errorRowIndexes.stream().map(String::valueOf).collect(Collectors.joining(", "));
+        } else if (errorRowIndexes.size() == 1) {
+            return "Due to invalid data, one record wasn't saved. Row: " + errorRowIndexes.get(0);
         }
         return "";
     }
@@ -162,42 +214,6 @@ public class LoadStudentsService implements ILoadStudentsService {
             return false;
         }
         return true;
-    }
-
-    private Map<String, Integer> saveStudentsToDatabase(List<NewStudentDTO> students) {
-        Set<String> allEmails = studentRepository.findAllEmails();
-        Set<String> allCodes = studentRepository.findAllCodes();
-
-        List<Student> studentEntities = students.stream()
-                .filter(dto ->
-                        !allEmails.contains(dto.getEmail()) &&
-                                !allCodes.contains(dto.getCode())
-                )
-                .map(dto -> {
-                    Student student = new Student();
-                    student.setEmail(dto.getEmail());
-                    student.setFirstName(dto.getFirstName());
-                    student.setLastName(dto.getLastName());
-                    student.setCode(dto.getCode());
-                    student.setProgramId(dto.getProgramId());
-                    student.setPassword(passwordEncoder.encode(DEFAULT_PASSWORD));
-                    student.setPasswordChanged(false);
-                    student.setEnabled(true);
-                    Student.updateProgramCountsFromDB(student.getProgramId(),1.0);
-                    return student;
-                })
-                .collect(Collectors.toList());
-
-        if (!studentEntities.isEmpty()) {
-            studentRepository.saveAll(studentEntities);  // Batch save
-        }
-
-        Map<String, Integer> statistics = new HashMap<>();
-
-        statistics.put("saved", studentEntities.size());
-        statistics.put("existed", (students.size() - studentEntities.size()));
-
-        return statistics;
     }
 
     private String getFileExtension(String filename) {
