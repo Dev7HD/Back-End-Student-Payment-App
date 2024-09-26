@@ -8,7 +8,7 @@ import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewAdminDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewPendingStudentDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewStudentDTO;
 import ma.dev7hd.studentspringngapp.dtos.otherDTOs.ChangePWDTO;
-import ma.dev7hd.studentspringngapp.entities.PendingStudent;
+import ma.dev7hd.studentspringngapp.entities.registrations.PendingStudent;
 import ma.dev7hd.studentspringngapp.enumirat.DepartmentName;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
 import ma.dev7hd.studentspringngapp.services.dataFromFile.ILoadStudentsService;
@@ -253,8 +253,14 @@ public class UserRestController {
         iUserService.declineMultipleRegistrations(emails);
     }
 
+    @PatchMapping("/toggle-selection")
+    public void toggleUserAccounts(List<String> emails){
+        iUserService.toggleUserAccount(emails);
+    }
+
     @DeleteMapping("delete-selection")
     public ResponseEntity<String> deleteMultipleUsers(@RequestBody List<String> emails){
+        System.out.println(emails);
         return iUserService.deleteMultipleUsers(emails);
     }
 

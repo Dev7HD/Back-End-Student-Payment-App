@@ -1,7 +1,7 @@
 package ma.dev7hd.studentspringngapp.services.user;
 
 import lombok.AllArgsConstructor;
-import ma.dev7hd.studentspringngapp.repositories.UserRepository;
+import ma.dev7hd.studentspringngapp.repositories.users.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

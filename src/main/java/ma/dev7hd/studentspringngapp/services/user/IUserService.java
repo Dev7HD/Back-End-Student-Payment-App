@@ -6,7 +6,7 @@ import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewAdminDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewPendingStudentDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewStudentDTO;
 import ma.dev7hd.studentspringngapp.dtos.otherDTOs.ChangePWDTO;
-import ma.dev7hd.studentspringngapp.entities.PendingStudent;
+import ma.dev7hd.studentspringngapp.entities.registrations.PendingStudent;
 import ma.dev7hd.studentspringngapp.enumirat.DepartmentName;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
 import org.jetbrains.annotations.NotNull;
@@ -83,4 +83,6 @@ public interface IUserService {
     ResponseEntity<String> deleteMultipleUsers(List<String> emails);
 
     ResponseEntity<String> resetPasswordToMultipleUsers(List<String> emails);
+
+    void toggleUserAccount(List<String> emails);
 }

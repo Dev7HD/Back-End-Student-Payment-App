@@ -1,6 +1,6 @@
 package ma.dev7hd.studentspringngapp.security.services;
 
-import ma.dev7hd.studentspringngapp.entities.UserTokens;
+import ma.dev7hd.studentspringngapp.entities.tokens.UserTokens;
 
 import java.util.List;
 import java.util.Map;

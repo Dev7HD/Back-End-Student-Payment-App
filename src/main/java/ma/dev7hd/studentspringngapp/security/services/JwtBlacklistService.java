@@ -2,10 +2,10 @@ package ma.dev7hd.studentspringngapp.security.services;
 
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
-import ma.dev7hd.studentspringngapp.entities.BlacklistedToken;
-import ma.dev7hd.studentspringngapp.entities.Token;
-import ma.dev7hd.studentspringngapp.repositories.BlacklistedTokenRepository;
-import ma.dev7hd.studentspringngapp.repositories.UserTokensRepository;
+import ma.dev7hd.studentspringngapp.entities.tokens.BlacklistedToken;
+import ma.dev7hd.studentspringngapp.entities.tokens.Token;
+import ma.dev7hd.studentspringngapp.repositories.tokens.BlacklistedTokenRepository;
+import ma.dev7hd.studentspringngapp.repositories.tokens.UserTokensRepository;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 

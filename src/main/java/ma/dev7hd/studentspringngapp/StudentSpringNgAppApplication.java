@@ -1,16 +1,11 @@
 package ma.dev7hd.studentspringngapp;
 
 import io.github.cdimascio.dotenv.Dotenv;
-import ma.dev7hd.studentspringngapp.entities.Admin;
-import ma.dev7hd.studentspringngapp.entities.Payment;
-import ma.dev7hd.studentspringngapp.entities.Student;
-import ma.dev7hd.studentspringngapp.enumirat.DepartmentName;
-import ma.dev7hd.studentspringngapp.enumirat.PaymentStatus;
-import ma.dev7hd.studentspringngapp.enumirat.PaymentType;
+import ma.dev7hd.studentspringngapp.entities.users.Student;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
-import ma.dev7hd.studentspringngapp.repositories.PaymentRepository;
-import ma.dev7hd.studentspringngapp.repositories.StudentRepository;
-import ma.dev7hd.studentspringngapp.repositories.UserRepository;
+import ma.dev7hd.studentspringngapp.repositories.payments.PaymentRepository;
+import ma.dev7hd.studentspringngapp.repositories.users.StudentRepository;
+import ma.dev7hd.studentspringngapp.repositories.users.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -18,12 +13,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-import java.io.File;
-import java.net.URI;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 

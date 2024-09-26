@@ -43,4 +43,6 @@ public interface IPaymentService {
     ResponseEntity<Map<Months, Long>> getPaymentsByMonth(Integer month);
 
     void updatePaymentsStatus(UpdatePaymentStatus updatePaymentStatus);
+
+    ResponseEntity<InfoStudentPaymentDTO> getPaymentAsStudent(Long notificationId);
 }

@@ -185,4 +185,9 @@ public class PaymentRestController {
         iPaymentService.updatePaymentsStatus(updatePaymentStatus);
     }
 
+    @GetMapping("/student-payment")
+    public ResponseEntity<InfoStudentPaymentDTO> getPaymentAsStudent(Long notificationId){
+        return iPaymentService.getPaymentAsStudent(notificationId);
+    }
+
 }

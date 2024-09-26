@@ -4,12 +4,20 @@ import lombok.AllArgsConstructor;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.*;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewPaymentDTO;
 import ma.dev7hd.studentspringngapp.dtos.otherDTOs.UpdatePaymentStatus;
-import ma.dev7hd.studentspringngapp.entities.*;
+import ma.dev7hd.studentspringngapp.entities.notifications.admins.NewPaymentNotification;
+import ma.dev7hd.studentspringngapp.entities.notifications.students.PaymentStatusChangedNotification;
+import ma.dev7hd.studentspringngapp.entities.payments.Payment;
+import ma.dev7hd.studentspringngapp.entities.payments.PaymentStatusChange;
+import ma.dev7hd.studentspringngapp.entities.users.*;
 import ma.dev7hd.studentspringngapp.enumirat.Months;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentStatus;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentType;
+import ma.dev7hd.studentspringngapp.repositories.payments.PaymentRepository;
+import ma.dev7hd.studentspringngapp.repositories.payments.PaymentStatusChangeRepository;
+import ma.dev7hd.studentspringngapp.repositories.users.AdminRepository;
+import ma.dev7hd.studentspringngapp.repositories.users.StudentRepository;
+import ma.dev7hd.studentspringngapp.repositories.users.UserRepository;
 import ma.dev7hd.studentspringngapp.services.notification.INotificationService;
-import ma.dev7hd.studentspringngapp.repositories.*;
 import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -40,7 +48,7 @@ public class PaymentService implements IPaymentService {
     private final PaymentRepository paymentRepository;
     private final PaymentStatusChangeRepository paymentStatusChangeRepository;
     private final ModelMapper modelMapper;
-    private final INotificationService notificationMetier;
+    private final INotificationService notificationService;
 
     private static final Path PAYMENTS_FOLDER_PATH = Paths.get(System.getProperty("user.home"), "data", "payments");
 
@@ -129,7 +137,7 @@ public class PaymentService implements IPaymentService {
         Optional<Payment> optionalPayment = paymentRepository.findById(paymentId);
         if (optionalPayment.isPresent()) {
             Payment payment = optionalPayment.get();
-            notificationMetier.notificationSeen(payment.getId(), null);
+            notificationService.adminNotificationSeen(payment.getId(), null);
             return ResponseEntity.ok(convertPaymentToDto(payment));
         }
         return null;
@@ -222,6 +230,18 @@ public class PaymentService implements IPaymentService {
         }
     }
 
+    @Override
+    public ResponseEntity<InfoStudentPaymentDTO> getPaymentAsStudent(Long notificationId){
+        UUID paymentId = notificationService.getPaymentIDAndMarkAsRead(notificationId);
+        Optional<Student> optionalStudent = getCurrentStudent();
+        InfoPaymentDTO paymentDTO = getPaymentById(paymentId).getBody();
+        if(optionalStudent.isPresent() && paymentDTO != null){
+            InfoStudentPaymentDTO studentPaymentDTO = modelMapper.map(paymentDTO, InfoStudentPaymentDTO.class);
+            return ResponseEntity.ok(studentPaymentDTO);
+        }
+        return ResponseEntity.badRequest().build();
+    }
+
     // Private methods
 
     private void sendPaymentNotification(Payment payment, User user){
@@ -233,7 +253,7 @@ public class PaymentService implements IPaymentService {
         notification.setRegisterDate(new Date());
         notification.setPaymentId(payment.getId());
 
-        notificationMetier.newNotification(notification);
+        notificationService.newAdminNotification(notification);
     }
 
     private Page<InfoAdminPaymentDTO> convertPageablePaymentToDTOAsAdmin(Page<Payment> payments) {
@@ -283,10 +303,26 @@ public class PaymentService implements IPaymentService {
 
             InfoPaymentDTO infoPaymentDTO = modelMapper.map(payment, InfoPaymentDTO.class);
             infoPaymentDTO.setAddedBy(payment.getAddedBy().getEmail());
+
+            PaymentStatusChangedNotification paymentStatusChangedNotification = buildPaymentStatusChangedNotification(payment, newStatus);
+
+            notificationService.newStudentNotification(paymentStatusChangedNotification, payment.getStudent().getEmail());
             
             return ResponseEntity.ok(infoPaymentDTO);
         }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+
+    private static @NotNull PaymentStatusChangedNotification buildPaymentStatusChangedNotification(Payment payment, PaymentStatus newStatus) {
+        String message = "Your payment was " + newStatus + ".";
+
+        PaymentStatusChangedNotification paymentStatusChangedNotification = new PaymentStatusChangedNotification();
+        paymentStatusChangedNotification.setDate(new Date());
+        paymentStatusChangedNotification.setPaymentId(payment.getId());
+        paymentStatusChangedNotification.setDeleted(false);
+        paymentStatusChangedNotification.setSeen(false);
+        paymentStatusChangedNotification.setMessage(message);
+        return paymentStatusChangedNotification;
     }
 
     private Payment buildPayment(NewPaymentDTO newPaymentDTO, Student student, User user, String receiptPath) {
@@ -329,13 +365,18 @@ public class PaymentService implements IPaymentService {
         return adminRepository.findById(userEmail);
     }
 
+    private Optional<Student> getCurrentStudent(){
+        String currentUserEmail = getCurrentUserEmail();
+        return studentRepository.findById(currentUserEmail);
+    }
+
     private String getCurrentUserEmail() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 
     private void paymentNotificationSeen(List<Payment> payments){
         for(Payment payment : payments){
-            notificationMetier.notificationSeen(payment.getId(), null);
+            notificationService.adminNotificationSeen(payment.getId(), null);
         }
     }
 }

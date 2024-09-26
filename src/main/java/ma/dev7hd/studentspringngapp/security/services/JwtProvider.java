@@ -1,10 +1,10 @@
 package ma.dev7hd.studentspringngapp.security.services;
 
 import lombok.AllArgsConstructor;
-import ma.dev7hd.studentspringngapp.entities.User;
-import ma.dev7hd.studentspringngapp.entities.UserTokens;
-import ma.dev7hd.studentspringngapp.repositories.UserRepository;
-import ma.dev7hd.studentspringngapp.repositories.UserTokensRepository;
+import ma.dev7hd.studentspringngapp.entities.users.User;
+import ma.dev7hd.studentspringngapp.entities.tokens.UserTokens;
+import ma.dev7hd.studentspringngapp.repositories.users.UserRepository;
+import ma.dev7hd.studentspringngapp.repositories.tokens.UserTokensRepository;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;

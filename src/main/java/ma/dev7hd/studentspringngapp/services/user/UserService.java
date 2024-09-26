@@ -7,11 +7,22 @@ import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewAdminDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewStudentDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewPendingStudentDTO;
 import ma.dev7hd.studentspringngapp.dtos.otherDTOs.ChangePWDTO;
-import ma.dev7hd.studentspringngapp.entities.*;
+import ma.dev7hd.studentspringngapp.entities.notifications.admins.PendingStudentNotification;
+import ma.dev7hd.studentspringngapp.entities.registrations.BanedRegistration;
+import ma.dev7hd.studentspringngapp.entities.tokens.UserTokens;
+import ma.dev7hd.studentspringngapp.entities.users.Admin;
+import ma.dev7hd.studentspringngapp.entities.registrations.PendingStudent;
+import ma.dev7hd.studentspringngapp.entities.users.Student;
+import ma.dev7hd.studentspringngapp.entities.users.User;
 import ma.dev7hd.studentspringngapp.enumirat.DepartmentName;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
+import ma.dev7hd.studentspringngapp.repositories.registrations.BanedRegistrationRepository;
+import ma.dev7hd.studentspringngapp.repositories.registrations.PendingStudentRepository;
+import ma.dev7hd.studentspringngapp.repositories.tokens.UserTokensRepository;
+import ma.dev7hd.studentspringngapp.repositories.users.AdminRepository;
+import ma.dev7hd.studentspringngapp.repositories.users.StudentRepository;
+import ma.dev7hd.studentspringngapp.repositories.users.UserRepository;
 import ma.dev7hd.studentspringngapp.services.notification.INotificationService;
-import ma.dev7hd.studentspringngapp.repositories.*;
 import ma.dev7hd.studentspringngapp.security.services.ISecurityService;
 import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;
@@ -193,7 +204,7 @@ public class UserService implements IUserService {
         Optional<PendingStudent> optionalPendingStudent = pendingStudentRepository.findById(email);
         if (optionalPendingStudent.isPresent()) {
             PendingStudent pendingStudent = optionalPendingStudent.get();
-            notificationMetier.notificationSeen(null,pendingStudent.getEmail());
+            notificationMetier.adminNotificationSeen(null,pendingStudent.getEmail());
             return ResponseEntity.ok(pendingStudent);
         }
         return ResponseEntity.notFound().build();
@@ -432,6 +443,18 @@ public class UserService implements IUserService {
         return ResponseEntity.ok(users.size() + " password(s) has been reset successfully.");
     }
 
+    @Override
+    public void toggleUserAccount(List<String> emails){
+        List<User> users = userRepository.findAllById(emails);
+        if (!users.isEmpty()) {
+            List<User> toggledUsers = users.stream()
+                    .peek(user -> {
+                        user.setEnabled(!user.isEnabled());
+                    }).toList();
+            userRepository.saveAll(toggledUsers);
+        }
+    }
+
     //PRIVATE METHODS
 
     private Student newStudentProcessing(Student student){
@@ -449,7 +472,7 @@ public class UserService implements IUserService {
         notification.setSeen(false);
         notification.setMessage(message);
         notification.setRegisterDate(new Date());
-        notificationMetier.newNotification(notification);
+        notificationMetier.newAdminNotification(notification);
     }
 
     private Admin newAdminProcessing(Admin admin){
@@ -533,7 +556,7 @@ public class UserService implements IUserService {
 
     private void seenNewRegistration(List<PendingStudent> pendingStudents){
         for(PendingStudent pendingStudent : pendingStudents){
-            notificationMetier.notificationSeen(null,pendingStudent.getEmail());
+            notificationMetier.adminNotificationSeen(null,pendingStudent.getEmail());
         }
     }
 }

@@ -2,12 +2,12 @@ package ma.dev7hd.studentspringngapp.security.services;
 
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
-import ma.dev7hd.studentspringngapp.entities.Admin;
-import ma.dev7hd.studentspringngapp.entities.Student;
-import ma.dev7hd.studentspringngapp.entities.User;
-import ma.dev7hd.studentspringngapp.entities.UserTokens;
-import ma.dev7hd.studentspringngapp.repositories.UserRepository;
-import ma.dev7hd.studentspringngapp.repositories.UserTokensRepository;
+import ma.dev7hd.studentspringngapp.entities.users.Admin;
+import ma.dev7hd.studentspringngapp.entities.users.Student;
+import ma.dev7hd.studentspringngapp.entities.users.User;
+import ma.dev7hd.studentspringngapp.entities.tokens.UserTokens;
+import ma.dev7hd.studentspringngapp.repositories.users.UserRepository;
+import ma.dev7hd.studentspringngapp.repositories.tokens.UserTokensRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;

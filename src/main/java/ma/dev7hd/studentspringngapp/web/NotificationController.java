@@ -19,38 +19,38 @@ public class NotificationController {
 
     @PostMapping("/delete")
     public void deleteNotification(@NotNull @RequestParam(name = "id") Long notificationId) throws ChangeSetPersister.NotFoundException {
-        iNotificationService.deleteNotification(notificationId);
+        iNotificationService.deleteAdminNotification(notificationId);
     }
 
     @PostMapping("/mark-all-as-read")
     public void markAllAsRead(){
-        iNotificationService.markAllAsRead();
+        iNotificationService.markAllAdminNotificationsAsRead();
     }
 
     @PatchMapping("/toggle-seen")
     public boolean toggleSeen(Long id){
-        return iNotificationService.toggleSeen(id);
+        return iNotificationService.toggleAdminNotificationSeen(id);
     }
 
     @GetMapping("/pageable")
     public Page<NotificationDTO> pageableNotifications(@RequestParam(required = false) Boolean seen,
                                                        @RequestParam(defaultValue = "0") int page,
                                                        @RequestParam(defaultValue = "10") int size) throws ChangeSetPersister.NotFoundException {
-        return iNotificationService.pageableNotifications(seen, page, size);
+        return iNotificationService.pageableAdminNotifications(seen, page, size);
     }
 
     @DeleteMapping("/delete-list")
     public void deleteNotifications(@RequestBody List<Long> notificationIds) throws ChangeSetPersister.NotFoundException {
-        iNotificationService.deleteNotifications(notificationIds);
+        iNotificationService.deleteAdminNotifications(notificationIds);
     }
 
     @PatchMapping("/mark-as-read-list")
     public void markNotificationsAsRead(@RequestBody List<Long> notificationIds) {
-        iNotificationService.markNotificationsAsRead(notificationIds);
+        iNotificationService.markAdminNotificationsAsRead(notificationIds);
     }
 
     @PatchMapping("/toggle-seen-list")
     public void toggleNotifications(@RequestBody List<Long> notificationIds){
-        iNotificationService.toggleNotifications(notificationIds);
+        iNotificationService.toggleAdminNotifications(notificationIds);
     }
 }

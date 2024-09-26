@@ -1,14 +1,20 @@
 package ma.dev7hd.studentspringngapp.services.notification;
 
 import lombok.AllArgsConstructor;
+import ma.dev7hd.studentspringngapp.dtos.infoDTOs.PaymentStatusChangedNotificationDTO;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.NewPaymentNotificationDTO;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.NotificationDTO;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.PendingStudentNotificationDTO;
-import ma.dev7hd.studentspringngapp.entities.*;
-import ma.dev7hd.studentspringngapp.repositories.AdminRepository;
-import ma.dev7hd.studentspringngapp.repositories.NewPaymentNotificationRepository;
-import ma.dev7hd.studentspringngapp.repositories.NotificationRepository;
-import ma.dev7hd.studentspringngapp.repositories.PendingStudentNotificationRepository;
+import ma.dev7hd.studentspringngapp.entities.notifications.admins.NewPaymentNotification;
+import ma.dev7hd.studentspringngapp.entities.notifications.admins.Notification;
+import ma.dev7hd.studentspringngapp.entities.notifications.admins.PendingStudentNotification;
+import ma.dev7hd.studentspringngapp.entities.notifications.students.PaymentStatusChangedNotification;
+import ma.dev7hd.studentspringngapp.entities.users.Admin;
+import ma.dev7hd.studentspringngapp.repositories.notifications.student.PaymentStatusChangedNotificationRepository;
+import ma.dev7hd.studentspringngapp.repositories.users.AdminRepository;
+import ma.dev7hd.studentspringngapp.repositories.notifications.admin.NewPaymentNotificationRepository;
+import ma.dev7hd.studentspringngapp.repositories.notifications.admin.NotificationRepository;
+import ma.dev7hd.studentspringngapp.repositories.notifications.admin.PendingStudentNotificationRepository;
 import ma.dev7hd.studentspringngapp.websoket.config.WebSocketService;
 import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;
@@ -30,9 +36,10 @@ public class NotificationService implements INotificationService {
     private final PendingStudentNotificationRepository pendingStudentNotificationRepository;
     private final WebSocketService webSocketService;
     private final ModelMapper modelMapper;
+    private final PaymentStatusChangedNotificationRepository paymentStatusChangedNotificationRepository;
 
     @Override
-    public void pushNotifications() throws ChangeSetPersister.NotFoundException {
+    public void pushAdminNotifications() throws ChangeSetPersister.NotFoundException {
         Admin admin = getCurrentAdmin();
         List<Notification> notifications = notificationRepository.findAllByAdminRemoverIsNot(admin);
 
@@ -42,13 +49,13 @@ public class NotificationService implements INotificationService {
     }
 
     @Override
-    public void newNotification(Notification notification) {
+    public void newAdminNotification(Notification notification) {
         Notification saved = notificationRepository.save(notification);
         pushNewNotification(saved);
     }
 
     @Override
-    public void deleteNotification(@NotNull Long notificationId) throws ChangeSetPersister.NotFoundException {
+    public void deleteAdminNotification(@NotNull Long notificationId) throws ChangeSetPersister.NotFoundException {
         Admin admin = getCurrentAdmin();
 
         notificationRepository.findById(notificationId).ifPresent(notification -> {
@@ -60,7 +67,7 @@ public class NotificationService implements INotificationService {
     }
 
     @Override
-    public void markAllAsRead(){
+    public void markAllAdminNotificationsAsRead(){
         notificationRepository.findAll().forEach(notification -> {
             if(!notification.isSeen()) notification.setSeen(true);
             notificationRepository.save(notification);
@@ -68,7 +75,7 @@ public class NotificationService implements INotificationService {
     }
 
     @Override
-    public boolean toggleSeen(Long id) {
+    public boolean toggleAdminNotificationSeen(Long id) {
         return notificationRepository.findById(id)
                 .map(notification -> {
                     notification.setSeen(!notification.isSeen());
@@ -78,7 +85,7 @@ public class NotificationService implements INotificationService {
     }
 
     @Override
-    public void notificationSeen(UUID paymentId, String email) {
+    public void adminNotificationSeen(UUID paymentId, String email) {
         if (email != null) {
             pendingStudentNotificationRepository.findByEmail(email)
                     .filter(notification -> !notification.isSeen())
@@ -103,7 +110,7 @@ public class NotificationService implements INotificationService {
     }
 
     @Override
-    public Page<NotificationDTO> pageableNotifications(Boolean seen, int page, int size) throws ChangeSetPersister.NotFoundException {
+    public Page<NotificationDTO> pageableAdminNotifications(Boolean seen, int page, int size) throws ChangeSetPersister.NotFoundException {
         Admin currentAdmin = getCurrentAdmin();
         Page<Notification> notifications = notificationRepository.findAllWithPagination(currentAdmin, seen, PageRequest.of(page, size));
 
@@ -119,7 +126,7 @@ public class NotificationService implements INotificationService {
     }
 
     @Override
-    public void deleteNotifications(List<Long> notificationIds) throws ChangeSetPersister.NotFoundException {
+    public void deleteAdminNotifications(List<Long> notificationIds) throws ChangeSetPersister.NotFoundException {
         Admin admin = getCurrentAdmin();
         List<Notification> notifications = getNotificationsByIds(notificationIds).stream()
                 .filter(notification -> !notification.getAdminRemover().contains(admin))
@@ -129,20 +136,78 @@ public class NotificationService implements INotificationService {
     }
 
     @Override
-    public void markNotificationsAsRead(List<Long> notificationIds) {
+    public void markAdminNotificationsAsRead(List<Long> notificationIds) {
         List<Notification> notifications = getNotificationsByIds(notificationIds).stream().filter(notification -> !notification.isSeen())
                 .peek(notification -> notification.setSeen(true)).toList();
         if(!notifications.isEmpty()) notificationRepository.saveAll(notifications);
     }
 
     @Override
-    public void toggleNotifications(List<Long> notificationIds){
+    public void toggleAdminNotifications(List<Long> notificationIds){
         List<Notification> notifications = getNotificationsByIds(notificationIds);
 
         if (!notifications.isEmpty()) {
             notifications.forEach(notification -> notification.setSeen(!notification.isSeen()));
             notificationRepository.saveAll(notifications);
         }
+    }
+
+    @Override
+    public void newStudentNotification(PaymentStatusChangedNotification paymentStatusChangedNotification, String studentEmail){
+        PaymentStatusChangedNotification saved = paymentStatusChangedNotificationRepository.save(paymentStatusChangedNotification);
+        pushStudentNotification(saved, studentEmail);
+    }
+
+    @Override
+    public boolean toggleStudentNotificationSeen(Long id){
+        return paymentStatusChangedNotificationRepository.findById(id)
+                .map(notification -> {
+                    notification.setSeen(!notification.isSeen());
+                    paymentStatusChangedNotificationRepository.save(notification);
+                    return !notification.isSeen();
+                })
+                .orElse(false);
+    }
+
+    @Override
+    public void deleteStudentNotification(Long id){
+        paymentStatusChangedNotificationRepository.findById(id)
+                .map(notification -> {
+                    notification.setDeleted(true);
+                    paymentStatusChangedNotificationRepository.save(notification);
+                    return null;
+                });
+    }
+
+    @Override
+    public void studentNotificationSeen(Long id){
+        paymentStatusChangedNotificationRepository.findById(id)
+                .map(notification -> {
+                    setStudentNotificationSeen(notification);
+                    return null;
+                });
+    }
+
+    @Override
+    public UUID getPaymentIDAndMarkAsRead(Long id){
+        return paymentStatusChangedNotificationRepository.findById(id)
+                .map(notification -> {
+                    setStudentNotificationSeen(notification);
+                    return notification.getPaymentId();
+                })
+                .orElse(null);
+    }
+
+    private void setStudentNotificationSeen(PaymentStatusChangedNotification notification){
+        notification.setSeen(true);
+        paymentStatusChangedNotificationRepository.save(notification);
+    }
+
+    private void pushStudentNotification(PaymentStatusChangedNotification notification, String studentEmail) {
+        PaymentStatusChangedNotificationDTO notificationDTO = modelMapper.map(notification, PaymentStatusChangedNotificationDTO.class);
+        String destination = "/notifications/" + studentEmail + "/payment-status-changed";
+
+        webSocketService.sendToSpecificUser(destination, notificationDTO);
     }
 
     private List<Notification> getNotificationsByIds(List<Long> notificationIds) {

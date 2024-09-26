@@ -21,7 +21,7 @@ public class AppService implements IAppService {
         Map<String, Map> dashboardData = new HashMap<>();
         dashboardData.put("countStudentsByProgram", iUserService.getProgramIdCounts());
         dashboardData.put("paymentsCountByMonth", iPaymentService.getPaymentsByMonth(null).getBody());
-        iNotificationService.pushNotifications();
+        iNotificationService.pushAdminNotifications();
         return dashboardData;
     }
 
