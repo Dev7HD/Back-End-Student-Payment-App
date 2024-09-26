@@ -254,7 +254,7 @@ public class UserRestController {
     }
 
     @PatchMapping("/toggle-selection")
-    public void toggleUserAccounts(List<String> emails){
+    public void toggleUserAccounts(@RequestBody List<String> emails){
         iUserService.toggleUserAccount(emails);
     }
 
