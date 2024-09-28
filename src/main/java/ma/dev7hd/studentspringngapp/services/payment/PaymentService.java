@@ -322,6 +322,7 @@ public class PaymentService implements IPaymentService {
         paymentStatusChangedNotification.setDeleted(false);
         paymentStatusChangedNotification.setSeen(false);
         paymentStatusChangedNotification.setMessage(message);
+        paymentStatusChangedNotification.setStudentEmail(payment.getStudent().getEmail());
         return paymentStatusChangedNotification;
     }
 

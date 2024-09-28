@@ -17,6 +17,7 @@ public class PaymentStatusChangedNotification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private UUID paymentId;
+    private String studentEmail;
     private String message;
     private Date date;
     private boolean seen;

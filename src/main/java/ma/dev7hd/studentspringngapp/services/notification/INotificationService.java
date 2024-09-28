@@ -33,6 +33,8 @@ public interface INotificationService {
 
     void newStudentNotification(PaymentStatusChangedNotification paymentStatusChangedNotification, String studentEmail);
 
+    void getStudentNotifications(String email);
+
     boolean toggleStudentNotificationSeen(Long id);
 
     void deleteStudentNotification(Long id);

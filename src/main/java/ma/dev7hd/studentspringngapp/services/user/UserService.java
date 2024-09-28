@@ -458,6 +458,16 @@ public class UserService implements IUserService {
         }
     }
 
+    @Override
+    public User getUserByEmail(String email) {
+        return userRepository.findById(email).orElse(null);
+    }
+
+    @Override
+    public String getCurrentUserEmail() {
+        return SecurityContextHolder.getContext().getAuthentication().getName();
+    }
+
     //PRIVATE METHODS
 
     private Student newStudentProcessing(Student student){
@@ -547,10 +557,6 @@ public class UserService implements IUserService {
             return ResponseEntity.ok("Password has been reset");
         }
         return ResponseEntity.badRequest().body("You can't reset your own password! instead you can change it.");
-    }
-
-    private String getCurrentUserEmail() {
-        return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 
     private Optional<Admin> getCurrentAdmin(){

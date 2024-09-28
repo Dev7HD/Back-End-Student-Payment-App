@@ -159,6 +159,14 @@ public class NotificationService implements INotificationService {
     }
 
     @Override
+    public void getStudentNotifications(String email){
+        List<PaymentStatusChangedNotification> studentNotifications = paymentStatusChangedNotificationRepository.findAllByStudentEmail(email);
+        studentNotifications.forEach(n -> {
+            pushStudentNotification(n, email);
+        });
+    }
+
+    @Override
     public boolean toggleStudentNotificationSeen(Long id){
         return paymentStatusChangedNotificationRepository.findById(id)
                 .map(notification -> {

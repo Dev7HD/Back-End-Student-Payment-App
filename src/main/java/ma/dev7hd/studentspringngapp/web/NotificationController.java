@@ -53,4 +53,6 @@ public class NotificationController {
     public void toggleNotifications(@RequestBody List<Long> notificationIds){
         iNotificationService.toggleAdminNotifications(notificationIds);
     }
+
+
 }

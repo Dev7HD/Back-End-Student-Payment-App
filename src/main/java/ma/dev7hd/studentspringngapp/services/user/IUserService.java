@@ -7,6 +7,7 @@ import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewPendingStudentDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewStudentDTO;
 import ma.dev7hd.studentspringngapp.dtos.otherDTOs.ChangePWDTO;
 import ma.dev7hd.studentspringngapp.entities.registrations.PendingStudent;
+import ma.dev7hd.studentspringngapp.entities.users.User;
 import ma.dev7hd.studentspringngapp.enumirat.DepartmentName;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
 import org.jetbrains.annotations.NotNull;
@@ -85,4 +86,8 @@ public interface IUserService {
     ResponseEntity<String> resetPasswordToMultipleUsers(List<String> emails);
 
     void toggleUserAccount(List<String> emails);
+
+    User getUserByEmail(String email);
+
+    String getCurrentUserEmail();
 }
