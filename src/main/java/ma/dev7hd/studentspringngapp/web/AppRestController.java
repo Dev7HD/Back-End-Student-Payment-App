@@ -15,7 +15,7 @@ public class AppRestController {
     private final IAppService globalMetier;
 
     @GetMapping("/on-login-data")
-    public Map<String, Map> onLoginFetchData() throws ChangeSetPersister.NotFoundException {
+    public Map<String, Object> onLoginFetchData() throws ChangeSetPersister.NotFoundException {
         return globalMetier.onLoginFetchData();
     }
 

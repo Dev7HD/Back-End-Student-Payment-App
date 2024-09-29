@@ -3,7 +3,6 @@ package ma.dev7hd.studentspringngapp.services.payment;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.*;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewPaymentDTO;
 import ma.dev7hd.studentspringngapp.dtos.otherDTOs.UpdatePaymentStatus;
-import ma.dev7hd.studentspringngapp.enumirat.Months;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentStatus;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentType;
 import org.jetbrains.annotations.NotNull;
@@ -13,7 +12,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 public interface IPaymentService {
@@ -39,8 +37,6 @@ public interface IPaymentService {
     Page<InfoAdminPaymentDTO> getPaymentsByCriteriaAsAdmin(String email, String code, Double min, Double max, PaymentStatus status, PaymentType type, int page, int size);
 
     Page<InfoStudentPaymentDTO> getPaymentsByCriteriaAsStudent(Double min, Double max, PaymentStatus status, PaymentType type, int page, int size);
-
-    ResponseEntity<Map<Months, Long>> getPaymentsByMonth(Integer month);
 
     void updatePaymentsStatus(UpdatePaymentStatus updatePaymentStatus);
 

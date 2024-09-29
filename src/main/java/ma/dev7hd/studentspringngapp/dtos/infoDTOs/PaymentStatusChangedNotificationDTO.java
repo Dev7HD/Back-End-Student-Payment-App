@@ -8,9 +8,9 @@ import java.util.UUID;
 
 @Getter @Setter
 public class PaymentStatusChangedNotificationDTO {
-    private Long id;
+    private Long notificationId;
     private UUID paymentId;
     private String message;
-    private Date date;
+    private Date registerDate;
     private boolean seen;
 }

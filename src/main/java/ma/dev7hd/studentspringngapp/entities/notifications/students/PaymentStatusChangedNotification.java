@@ -15,11 +15,11 @@ import java.util.UUID;
 public class PaymentStatusChangedNotification {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long notificationId;
     private UUID paymentId;
     private String studentEmail;
     private String message;
-    private Date date;
+    private Date registerDate;
     private boolean seen;
     private boolean deleted;
 }

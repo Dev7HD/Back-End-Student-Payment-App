@@ -8,6 +8,7 @@ import ma.dev7hd.studentspringngapp.dtos.otherDTOs.UpdatePaymentStatus;
 import ma.dev7hd.studentspringngapp.enumirat.Months;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentStatus;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentType;
+import ma.dev7hd.studentspringngapp.services.global.IAppService;
 import ma.dev7hd.studentspringngapp.services.payment.IPaymentService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
@@ -27,6 +28,7 @@ import java.util.UUID;
 @RequestMapping("/payments")
 public class PaymentRestController {
     private final IPaymentService iPaymentService;
+    private final IAppService iAppService;
 
     /**
      * Get all payments
@@ -177,7 +179,7 @@ public class PaymentRestController {
 
     @GetMapping("/statistics-by-mount")
     public ResponseEntity<Map<Months, Long>> getPaymentsByMonth(@RequestParam(required = false) Integer month) {
-        return iPaymentService.getPaymentsByMonth(month);
+        return iAppService.getPaymentsByMonth(month);
     }
 
     @PatchMapping("/list/update-status")

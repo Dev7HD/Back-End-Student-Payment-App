@@ -7,7 +7,6 @@ import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewPendingStudentDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewStudentDTO;
 import ma.dev7hd.studentspringngapp.dtos.otherDTOs.ChangePWDTO;
 import ma.dev7hd.studentspringngapp.entities.registrations.PendingStudent;
-import ma.dev7hd.studentspringngapp.entities.users.User;
 import ma.dev7hd.studentspringngapp.enumirat.DepartmentName;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
 import org.jetbrains.annotations.NotNull;
@@ -16,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Map;
 
 public interface IUserService {
 
@@ -67,8 +65,6 @@ public interface IUserService {
 
     ResponseEntity<InfosStudentDTO> updateStudentInfo(@NotNull InfosStudentDTO studentDTO);
 
-    Map<ProgramID, List<Double>> getProgramIdCounts();
-
     ResponseEntity<PendingStudent> getPendingStudentByEmail(String email);
 
     @Transactional
@@ -87,7 +83,4 @@ public interface IUserService {
 
     void toggleUserAccount(List<String> emails);
 
-    User getUserByEmail(String email);
-
-    String getCurrentUserEmail();
 }

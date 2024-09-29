@@ -7,7 +7,6 @@ import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewAdminDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewStudentDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewPendingStudentDTO;
 import ma.dev7hd.studentspringngapp.dtos.otherDTOs.ChangePWDTO;
-import ma.dev7hd.studentspringngapp.entities.notifications.admins.PendingStudentNotification;
 import ma.dev7hd.studentspringngapp.entities.registrations.BanedRegistration;
 import ma.dev7hd.studentspringngapp.entities.tokens.UserTokens;
 import ma.dev7hd.studentspringngapp.entities.users.Admin;
@@ -22,6 +21,7 @@ import ma.dev7hd.studentspringngapp.repositories.tokens.UserTokensRepository;
 import ma.dev7hd.studentspringngapp.repositories.users.AdminRepository;
 import ma.dev7hd.studentspringngapp.repositories.users.StudentRepository;
 import ma.dev7hd.studentspringngapp.repositories.users.UserRepository;
+import ma.dev7hd.studentspringngapp.services.global.IUserDataProvider;
 import ma.dev7hd.studentspringngapp.services.notification.INotificationService;
 import ma.dev7hd.studentspringngapp.security.services.ISecurityService;
 import org.jetbrains.annotations.NotNull;
@@ -54,7 +54,8 @@ public class UserService implements IUserService {
     private final ModelMapper modelMapper;
     private final PendingStudentRepository pendingStudentRepository;
     private final BanedRegistrationRepository banedRegistrationRepository;
-    private final INotificationService notificationMetier;
+    private final INotificationService notificationService;
+    private final IUserDataProvider iUserDataProvider;
 
     private final String DEFAULT_PASSWORD = "123456";
     private final ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
@@ -148,7 +149,7 @@ public class UserService implements IUserService {
     @Transactional
     public ResponseEntity<String> resetPW(String targetUserEmail){
         Optional<User> optionalTargetUser = userRepository.findByEmail(targetUserEmail);
-        String loggedInUserEmail = getCurrentUserEmail();
+        String loggedInUserEmail = iUserDataProvider.getCurrentUserEmail();
         if (optionalTargetUser.isPresent()) {
             User targetUser = optionalTargetUser.get();
             return processPasswordReset(targetUser, loggedInUserEmail);
@@ -188,14 +189,14 @@ public class UserService implements IUserService {
         PendingStudent pendingStudent = convertPendingStudentToDto(pendingStudentDTO);
         pendingStudent.setRegisterDate(new Date());
         PendingStudent savedPendingStudent = pendingStudentRepository.save(pendingStudent);
-        sendPendingStudentNotifications(savedPendingStudent);
+        notificationService.sendPendingStudentNotifications(savedPendingStudent);
         return ResponseEntity.ok().body("The registration was successful.");
     }
 
     @Override
     public Page<PendingStudent> getPendingStudent(String email, int page, int size){
         Page<PendingStudent> pendingStudents = pendingStudentRepository.findByPendingStudentsByFilter(email, PageRequest.of(page, size));
-        seenNewRegistration(pendingStudents.getContent());
+        notificationService.seenNewRegistration(pendingStudents.getContent());
         return pendingStudents;
     }
 
@@ -204,7 +205,7 @@ public class UserService implements IUserService {
         Optional<PendingStudent> optionalPendingStudent = pendingStudentRepository.findById(email);
         if (optionalPendingStudent.isPresent()) {
             PendingStudent pendingStudent = optionalPendingStudent.get();
-            notificationMetier.adminNotificationSeen(null,pendingStudent.getEmail());
+            notificationService.adminNotificationSeen(null,pendingStudent.getEmail());
             return ResponseEntity.ok(pendingStudent);
         }
         return ResponseEntity.notFound().build();
@@ -263,7 +264,7 @@ public class UserService implements IUserService {
     @Override
     public ResponseEntity<String> banStudentRegistration(@NotNull String email){
         Optional<PendingStudent> optionalPendingStudent = pendingStudentRepository.findById(email);
-        Optional<User> optionalUser = userRepository.findById(getCurrentUserEmail());
+        Optional<User> optionalUser = userRepository.findById(iUserDataProvider.getCurrentUserEmail());
         if (optionalPendingStudent.isPresent() && optionalUser.isPresent() && optionalUser.get() instanceof Admin admin) {
             PendingStudent pendingStudent = optionalPendingStudent.get();
 
@@ -294,11 +295,6 @@ public class UserService implements IUserService {
             return ResponseEntity.ok(convertStudentToDto(savedStudentInfo));
         }
         return ResponseEntity.badRequest().build();
-    }
-
-    @Override
-    public Map<ProgramID, List<Double>> getProgramIdCounts(){
-        return Student.programIDCounter;
     }
 
     @Override
@@ -377,7 +373,7 @@ public class UserService implements IUserService {
             List<PendingStudent> pendingStudents = pendingStudentRepository.findAllById(emails);
             if (pendingStudents.isEmpty()) return ResponseEntity.badRequest().body("No registration was found!");
 
-            Optional<Admin> currentAdmin = getCurrentAdmin();
+            Optional<Admin> currentAdmin = iUserDataProvider.getCurrentAdmin();
             if (currentAdmin.isPresent()) {
                 Admin admin = currentAdmin.get();
 
@@ -458,16 +454,6 @@ public class UserService implements IUserService {
         }
     }
 
-    @Override
-    public User getUserByEmail(String email) {
-        return userRepository.findById(email).orElse(null);
-    }
-
-    @Override
-    public String getCurrentUserEmail() {
-        return SecurityContextHolder.getContext().getAuthentication().getName();
-    }
-
     //PRIVATE METHODS
 
     private Student newStudentProcessing(Student student){
@@ -478,15 +464,7 @@ public class UserService implements IUserService {
         return student;
     }
 
-    private void sendPendingStudentNotifications(PendingStudent pendingStudent){
-        PendingStudentNotification notification = new PendingStudentNotification();
-        String message = pendingStudent.getFirstName() + " " + pendingStudent.getLastName() + " made a new registration need to be reviewed.";
-        notification.setEmail(pendingStudent.getEmail());
-        notification.setSeen(false);
-        notification.setMessage(message);
-        notification.setRegisterDate(new Date());
-        notificationMetier.newAdminNotification(notification);
-    }
+
 
     private Admin newAdminProcessing(Admin admin){
         admin.setPasswordChanged(false);
@@ -536,7 +514,7 @@ public class UserService implements IUserService {
 
     private void oldTokensProcessing(String userEmail){
         if(userEmail == null) {
-            userEmail = getCurrentUserEmail();
+            userEmail = iUserDataProvider.getCurrentUserEmail();
         }
         Optional<List<UserTokens>> optionalUserTokens = userTokensRepository.findByEmail(userEmail);
         if (optionalUserTokens.isPresent()){
@@ -559,13 +537,4 @@ public class UserService implements IUserService {
         return ResponseEntity.badRequest().body("You can't reset your own password! instead you can change it.");
     }
 
-    private Optional<Admin> getCurrentAdmin(){
-        return adminRepository.findById(getCurrentUserEmail());
-    }
-
-    private void seenNewRegistration(List<PendingStudent> pendingStudents){
-        for(PendingStudent pendingStudent : pendingStudents){
-            notificationMetier.adminNotificationSeen(null,pendingStudent.getEmail());
-        }
-    }
 }

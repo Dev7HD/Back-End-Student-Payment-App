@@ -9,14 +9,12 @@ import ma.dev7hd.studentspringngapp.entities.notifications.students.PaymentStatu
 import ma.dev7hd.studentspringngapp.entities.payments.Payment;
 import ma.dev7hd.studentspringngapp.entities.payments.PaymentStatusChange;
 import ma.dev7hd.studentspringngapp.entities.users.*;
-import ma.dev7hd.studentspringngapp.enumirat.Months;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentStatus;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentType;
 import ma.dev7hd.studentspringngapp.repositories.payments.PaymentRepository;
 import ma.dev7hd.studentspringngapp.repositories.payments.PaymentStatusChangeRepository;
-import ma.dev7hd.studentspringngapp.repositories.users.AdminRepository;
 import ma.dev7hd.studentspringngapp.repositories.users.StudentRepository;
-import ma.dev7hd.studentspringngapp.repositories.users.UserRepository;
+import ma.dev7hd.studentspringngapp.services.global.IUserDataProvider;
 import ma.dev7hd.studentspringngapp.services.notification.INotificationService;
 import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;
@@ -42,13 +40,12 @@ import java.util.stream.Collectors;
 @Service
 @AllArgsConstructor
 public class PaymentService implements IPaymentService {
-    private final UserRepository userRepository;
-    private final AdminRepository adminRepository;
-    private final StudentRepository studentRepository;
     private final PaymentRepository paymentRepository;
     private final PaymentStatusChangeRepository paymentStatusChangeRepository;
     private final ModelMapper modelMapper;
     private final INotificationService notificationService;
+    private final StudentRepository studentRepository;
+    private final IUserDataProvider iUserDataProvider;
 
     private static final Path PAYMENTS_FOLDER_PATH = Paths.get(System.getProperty("user.home"), "data", "payments");
 
@@ -60,7 +57,7 @@ public class PaymentService implements IPaymentService {
             return ResponseEntity.badRequest().build();
         }
 
-        Optional<User> optionalLoggedInUser = getCurrentUser();
+        Optional<User> optionalLoggedInUser = iUserDataProvider.getCurrentUser();
 
         Optional<Student> optionalStudent = studentRepository.findStudentByCode(newPaymentDTO.getStudentCode());
 
@@ -160,7 +157,7 @@ public class PaymentService implements IPaymentService {
 
     @Override
     public Page<InfoStatusChangesDTO> getPaymentsStatusChangers(String email, UUID paymentId, PaymentStatus newStatus, PaymentStatus oldStatus, int page, int size){
-        Admin admin = email != null ? adminRepository.findById(email).orElse(null) : null;
+        Admin admin = email != null ? iUserDataProvider.getAdminByEmail(email).orElse(null) : null;
         Payment payment = paymentId != null ? paymentRepository.findById(paymentId).orElse(null) : null;
         Page<PaymentStatusChange> statusChanges = paymentStatusChangeRepository.findAll(admin, payment, newStatus, oldStatus, PageRequest.of(page, size));
         return convertChanges(statusChanges);
@@ -183,29 +180,8 @@ public class PaymentService implements IPaymentService {
     }
 
     @Override
-    public ResponseEntity<Map<Months, Long>> getPaymentsByMonth(Integer month) {
-        if(month != null && (month > 12 || month < 1)) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        Map<Months, Long> countByMonth = new EnumMap<>(Months.class);
-        if(month == null){
-            List<Long[]> counted = paymentRepository.countAllPaymentsGroupByDateAndOptionalMonth(month);
-            int i = 0;
-            for(Months months : Months.values()) {
-                countByMonth.put(months, counted.get(i)[1]);
-                i++;
-            }
-        } else {
-            Long[] counted = paymentRepository.countPaymentsByMonth(month);
-            countByMonth.put(Months.values()[month - 1], counted[0]);
-        }
-        return ResponseEntity.ok(countByMonth);
-    }
-
-    @Override
     public void updatePaymentsStatus(UpdatePaymentStatus updatePaymentStatus){
-        Optional<Admin> currentAdmin = getCurrentAdmin();
+        Optional<Admin> currentAdmin = iUserDataProvider.getCurrentAdmin();
         List<Payment> allPayments = paymentRepository.findAllById(updatePaymentStatus.getIds());
         if (currentAdmin.isPresent() && !allPayments.isEmpty()){
             Admin admin = currentAdmin.get();
@@ -233,7 +209,7 @@ public class PaymentService implements IPaymentService {
     @Override
     public ResponseEntity<InfoStudentPaymentDTO> getPaymentAsStudent(Long notificationId){
         UUID paymentId = notificationService.getPaymentIDAndMarkAsRead(notificationId);
-        Optional<Student> optionalStudent = getCurrentStudent();
+        Optional<Student> optionalStudent = iUserDataProvider.getCurrentStudent();
         InfoPaymentDTO paymentDTO = getPaymentById(paymentId).getBody();
         if(optionalStudent.isPresent() && paymentDTO != null){
             InfoStudentPaymentDTO studentPaymentDTO = modelMapper.map(paymentDTO, InfoStudentPaymentDTO.class);
@@ -285,9 +261,9 @@ public class PaymentService implements IPaymentService {
     }
 
     private ResponseEntity<InfoPaymentDTO> processPaymentStatusUpdate(Payment payment, PaymentStatus newStatus) {
-        Optional<Admin> optionalAdmin = getCurrentAdmin();
+        Optional<Admin> optionalAdmin = iUserDataProvider.getCurrentAdmin();
         PaymentStatus oldStatus = payment.getStatus();
-        if (optionalAdmin.isPresent()) {
+        if (optionalAdmin.isPresent() && oldStatus != newStatus) {
             payment.setStatus(newStatus);
 
             PaymentStatusChange changes = PaymentStatusChange.builder()
@@ -317,7 +293,7 @@ public class PaymentService implements IPaymentService {
         String message = "Your payment was " + newStatus + ".";
 
         PaymentStatusChangedNotification paymentStatusChangedNotification = new PaymentStatusChangedNotification();
-        paymentStatusChangedNotification.setDate(new Date());
+        paymentStatusChangedNotification.setRegisterDate(new Date());
         paymentStatusChangedNotification.setPaymentId(payment.getId());
         paymentStatusChangedNotification.setDeleted(false);
         paymentStatusChangedNotification.setSeen(false);
@@ -354,21 +330,6 @@ public class PaymentService implements IPaymentService {
             return null;
         }
         return filePath;
-    }
-
-    private Optional<User> getCurrentUser() {
-        String userEmail = getCurrentUserEmail();
-        return userRepository.findByEmail(userEmail);
-    }
-
-    private Optional<Admin> getCurrentAdmin() {
-        String userEmail = getCurrentUserEmail();
-        return adminRepository.findById(userEmail);
-    }
-
-    private Optional<Student> getCurrentStudent(){
-        String currentUserEmail = getCurrentUserEmail();
-        return studentRepository.findById(currentUserEmail);
     }
 
     private String getCurrentUserEmail() {

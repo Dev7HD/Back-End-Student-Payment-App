@@ -9,21 +9,22 @@ import ma.dev7hd.studentspringngapp.entities.notifications.admins.NewPaymentNoti
 import ma.dev7hd.studentspringngapp.entities.notifications.admins.Notification;
 import ma.dev7hd.studentspringngapp.entities.notifications.admins.PendingStudentNotification;
 import ma.dev7hd.studentspringngapp.entities.notifications.students.PaymentStatusChangedNotification;
+import ma.dev7hd.studentspringngapp.entities.registrations.PendingStudent;
 import ma.dev7hd.studentspringngapp.entities.users.Admin;
 import ma.dev7hd.studentspringngapp.repositories.notifications.student.PaymentStatusChangedNotificationRepository;
-import ma.dev7hd.studentspringngapp.repositories.users.AdminRepository;
 import ma.dev7hd.studentspringngapp.repositories.notifications.admin.NewPaymentNotificationRepository;
 import ma.dev7hd.studentspringngapp.repositories.notifications.admin.NotificationRepository;
 import ma.dev7hd.studentspringngapp.repositories.notifications.admin.PendingStudentNotificationRepository;
+import ma.dev7hd.studentspringngapp.services.global.IUserDataProvider;
 import ma.dev7hd.studentspringngapp.websoket.config.WebSocketService;
 import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -31,12 +32,12 @@ import java.util.UUID;
 @AllArgsConstructor
 public class NotificationService implements INotificationService {
     private final NotificationRepository notificationRepository;
-    private final AdminRepository adminRepository;
     private final NewPaymentNotificationRepository newPaymentNotificationRepository;
     private final PendingStudentNotificationRepository pendingStudentNotificationRepository;
     private final WebSocketService webSocketService;
     private final ModelMapper modelMapper;
     private final PaymentStatusChangedNotificationRepository paymentStatusChangedNotificationRepository;
+    private final IUserDataProvider iUserDataProvider;
 
     @Override
     public void pushAdminNotifications() throws ChangeSetPersister.NotFoundException {
@@ -206,6 +207,36 @@ public class NotificationService implements INotificationService {
                 .orElse(null);
     }
 
+    @Override
+    public Long getAdminNotificationsNonSeenCount() throws ChangeSetPersister.NotFoundException {
+        Admin currentAdmin = getCurrentAdmin();
+        return notificationRepository.countAdminNotifications(currentAdmin);
+    }
+
+    @Override
+    public Long getStudentNotificationsNonSeenCount() throws ChangeSetPersister.NotFoundException {
+        String currentUserEmail = iUserDataProvider.getCurrentUserEmail();
+        return paymentStatusChangedNotificationRepository.countStudentNonSeenNotifications(currentUserEmail);
+    }
+
+    @Override
+    public void sendPendingStudentNotifications(PendingStudent pendingStudent){
+        PendingStudentNotification notification = new PendingStudentNotification();
+        String message = pendingStudent.getFirstName() + " " + pendingStudent.getLastName() + " made a new registration need to be reviewed.";
+        notification.setEmail(pendingStudent.getEmail());
+        notification.setSeen(false);
+        notification.setMessage(message);
+        notification.setRegisterDate(new Date());
+        newAdminNotification(notification);
+    }
+
+    @Override
+    public void seenNewRegistration(List<PendingStudent> pendingStudents){
+        for(PendingStudent pendingStudent : pendingStudents){
+            adminNotificationSeen(null,pendingStudent.getEmail());
+        }
+    }
+
     private void setStudentNotificationSeen(PaymentStatusChangedNotification notification){
         notification.setSeen(true);
         paymentStatusChangedNotificationRepository.save(notification);
@@ -223,8 +254,7 @@ public class NotificationService implements INotificationService {
     }
 
     private Admin getCurrentAdmin() throws ChangeSetPersister.NotFoundException {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        return adminRepository.findById(userEmail).orElseThrow(ChangeSetPersister.NotFoundException::new);
+        return iUserDataProvider.getCurrentAdmin().orElseThrow(ChangeSetPersister.NotFoundException::new);
     }
 
     private void pushNewNotification(Notification notification) {
