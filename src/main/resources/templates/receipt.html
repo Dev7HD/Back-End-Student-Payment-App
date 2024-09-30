@@ -68,11 +68,6 @@
     font-weight: bold;
     }
     /** RTL **/
-    .invoice-box.rtl {
-    direction: rtl;
-    font-family: Tahoma, 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif;
-    }
-
     .invoice-box.rtl table {
     text-align: right;
     }
@@ -80,25 +75,30 @@
     .invoice-box.rtl table tr td:nth-child(2) {
     text-align: left;
     }
+
+    .stamp-img{
+        width: 200px;
+    }
     </style>
 </head>
 
 <body>
 <div class="invoice-box">
-    <table cellpadding="0" cellspacing="0">
+    <table style="border-spacing: 0; padding: 0;">
         <tr class="top">
             <td colspan="2">
                 <table>
                     <tr>
                         <td class="title">
                             <img
-                                th:src="@{'file:/C:/Users/Hamza/IdeaProjects/Back-End-Student-Payment-App/src/main/resources/static/img/wallet.png'}"
+                                th:src="'data:image/png;base64,' + ${logo}"
                                 style="width: 50px"
-                             alt="logo"/>
+                                alt="logo"
+                            />
                         </td>
 
                         <td>
-                            Invoice #: <span th:text="${paymentId}"></span><br />
+                            Invoice #: <span th:text="${invoiceNumber}"></span><br />
                             Created: <span th:text="${paymentDate}"></span><br />
                             Download Date: <span th:text="${downloadDate}"></span>
                         </td>
@@ -156,6 +156,12 @@
             <td>Total: <span th:text="${amount}"></span> MAD</td>
         </tr>
     </table>
+    <div >
+        <img class="stamp-img"
+             th:src="'data:image/png;base64,' + ${stamp}"
+             alt="stamp"
+        />
+    </div>
     <p style="text-align: center; margin-top: 30px; font-size: small">* This payment can't be refunded</p>
 </div>
 </body>

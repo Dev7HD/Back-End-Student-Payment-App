@@ -45,6 +45,8 @@ public class Payment {
     @Column(nullable = false, updatable = false)
     private String receipt;
 
+    private String invoiceNumber;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "student_id", nullable = false, updatable = false)
     private Student student;

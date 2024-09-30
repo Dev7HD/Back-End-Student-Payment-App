@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.UUID;
 
 @RestController
@@ -17,15 +18,20 @@ public class PaymentReceiptController {
     private PaymentReceiptService paymentReceiptService;
 
     @GetMapping("/receipt/generate-receipt")
-    public ResponseEntity<byte[]> generatePaymentReceipt(UUID paymentId) {
+    public ResponseEntity<?> generatePaymentReceipt(UUID paymentId) throws IOException {
 
         // Generate the PDF receipt
         ByteArrayInputStream receiptStream = paymentReceiptService.generatePaymentReceipt(paymentId);
 
-        // Set response headers
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Disposition", "inline; filename=payment_receipt.pdf");
+        if (receiptStream != null) {
+            // Set response headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Content-Disposition", "inline; filename=payment_receipt.pdf");
 
-        return new ResponseEntity<>(receiptStream.readAllBytes(), headers, HttpStatus.OK);
+            return new ResponseEntity<>(receiptStream.readAllBytes(), headers, HttpStatus.OK);
+        } else {
+            return ResponseEntity.badRequest().body("The payment must be 'VALIDATED' to be downloaded");
+        }
+
     }
 }
