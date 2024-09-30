@@ -83,6 +83,19 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- Flying Saucer PDF rendering library -->
+        <dependency>
+            <groupId>org.xhtmlrenderer</groupId>
+            <artifactId>flying-saucer-pdf</artifactId>
+            <version>9.9.0</version>
+        </dependency>
+
+        <!-- Thymeleaf for rendering HTML -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
