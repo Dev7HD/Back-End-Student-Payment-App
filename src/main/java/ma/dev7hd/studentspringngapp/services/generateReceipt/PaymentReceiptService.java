@@ -1,6 +1,7 @@
 package ma.dev7hd.studentspringngapp.services.generateReceipt;
 
 import lombok.AllArgsConstructor;
+import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InvoiceDTO;
 import ma.dev7hd.studentspringngapp.entities.payments.Payment;
 import ma.dev7hd.studentspringngapp.enumirat.PaymentStatus;
 import ma.dev7hd.studentspringngapp.repositories.payments.PaymentRepository;
@@ -29,7 +30,7 @@ public class PaymentReceiptService {
     private final SpringTemplateEngine templateEngine;
     private final PaymentRepository paymentRepository;
 
-    public ByteArrayInputStream generatePaymentReceipt(UUID paymentId) throws IOException {
+    public InvoiceDTO generatePaymentReceipt(UUID paymentId) throws IOException {
 
         Optional<Payment> optionalPayment = paymentRepository.findById(paymentId);
 
@@ -74,7 +75,12 @@ public class PaymentReceiptService {
                 renderer.layout();
                 renderer.createPDF(outputStream);
 
-                return new ByteArrayInputStream(outputStream.toByteArray());
+                InvoiceDTO invoiceDTO = new InvoiceDTO();
+                invoiceDTO.setStream(new ByteArrayInputStream(outputStream.toByteArray()));
+                invoiceDTO.setNumber(payment.getInvoiceNumber());
+
+                return invoiceDTO;
+
             } catch (Exception e) {
                 throw new RuntimeException("Failed to generate PDF", e);
             }
