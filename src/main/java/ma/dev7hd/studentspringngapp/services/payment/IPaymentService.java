@@ -18,7 +18,7 @@ public interface IPaymentService {
     ResponseEntity<InfoSavedPayment> saveNewPayment(NewPaymentDTO newPaymentDTO,
                                                     @NotNull MultipartFile file) throws IOException;
 
-    ResponseEntity<InfoPaymentDTO> updatePaymentStatus(UUID paymentId, PaymentStatus newStatus);
+    ResponseEntity<?> updatePaymentStatus(UUID paymentId, PaymentStatus newStatus);
 
     byte[] getReceipt(UUID paymentId) throws IOException;
 

@@ -83,13 +83,17 @@ public class PaymentService implements IPaymentService {
 
     @Override
     @Transactional
-    public ResponseEntity<InfoPaymentDTO> updatePaymentStatus(UUID paymentId, PaymentStatus newStatus) {
+    public ResponseEntity<?> updatePaymentStatus(UUID paymentId, PaymentStatus newStatus) {
         Optional<Payment> optionalPayment = paymentRepository.findById(paymentId);
 
-        if (optionalPayment.isPresent()) {
-            return processPaymentStatusUpdate(optionalPayment.get(),newStatus);
+        if (optionalPayment.isEmpty()) {
+            return ResponseEntity.badRequest().body("Invalid payment.");
+        } else if (optionalPayment.get().getStatus() == PaymentStatus.VALIDATED){
+            return ResponseEntity.badRequest().body("You cannot change status for a validated payment.");
+        } else if (optionalPayment.get().getStatus() == PaymentStatus.REJECTED) {
+            return ResponseEntity.badRequest().body("You cannot change status for a rejected payment.");
         } else {
-            return ResponseEntity.notFound().build();
+            return processPaymentStatusUpdate(optionalPayment.get(),newStatus);
         }
     }
 
@@ -290,16 +294,21 @@ public class PaymentService implements IPaymentService {
     }
 
     private static @NotNull PaymentStatusChangedNotification buildPaymentStatusChangedNotification(Payment payment, PaymentStatus newStatus) {
-        String message = "Your payment was " + newStatus + ".";
+        String message;
+        if (newStatus == PaymentStatus.VALIDATED) {
+            message = "Your payment has been VALIDATED. You can check and download your payment confirmation invoice.";
+        } else {
+            message = "Your school payment has been REJECTED by the administration. Please contact them directly for more information regarding the reason for the rejection.";
+        }
 
-        PaymentStatusChangedNotification paymentStatusChangedNotification = new PaymentStatusChangedNotification();
-        paymentStatusChangedNotification.setRegisterDate(new Date());
-        paymentStatusChangedNotification.setPaymentId(payment.getId());
-        paymentStatusChangedNotification.setDeleted(false);
-        paymentStatusChangedNotification.setSeen(false);
-        paymentStatusChangedNotification.setMessage(message);
-        paymentStatusChangedNotification.setStudentEmail(payment.getStudent().getEmail());
-        return paymentStatusChangedNotification;
+        return PaymentStatusChangedNotification.builder()
+                .paymentId(payment.getId())
+                .message(message)
+                .deleted(false)
+                .seen(false)
+                .registerDate(new Date())
+                .studentEmail(payment.getStudent().getEmail())
+                .build();
     }
 
     private Payment buildPayment(NewPaymentDTO newPaymentDTO, Student student, User user, String receiptPath) {

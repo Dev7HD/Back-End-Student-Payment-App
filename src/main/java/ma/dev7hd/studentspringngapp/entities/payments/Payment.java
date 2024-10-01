@@ -7,6 +7,7 @@ import ma.dev7hd.studentspringngapp.entities.users.Student;
 import ma.dev7hd.studentspringngapp.entities.users.User;
 import ma.dev7hd.studentspringngapp.enumirat.*;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -46,6 +47,8 @@ public class Payment {
     private String receipt;
 
     private String invoiceNumber;
+
+    private LocalDateTime invoiceDate;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "student_id", nullable = false, updatable = false)

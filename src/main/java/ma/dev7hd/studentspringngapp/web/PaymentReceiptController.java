@@ -2,7 +2,7 @@ package ma.dev7hd.studentspringngapp.web;
 
 import lombok.AllArgsConstructor;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InvoiceDTO;
-import ma.dev7hd.studentspringngapp.services.generateReceipt.PaymentReceiptService;
+import ma.dev7hd.studentspringngapp.services.generateReceipt.IPaymentReceiptService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +15,7 @@ import java.util.UUID;
 @RestController
 @AllArgsConstructor
 public class PaymentReceiptController {
-    private PaymentReceiptService paymentReceiptService;
+    private IPaymentReceiptService paymentReceiptService;
 
     @GetMapping("/receipt/generate-receipt")
     public ResponseEntity<?> generatePaymentReceipt(UUID paymentId) throws IOException {
