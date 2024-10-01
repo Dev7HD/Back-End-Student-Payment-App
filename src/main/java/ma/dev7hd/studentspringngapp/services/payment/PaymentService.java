@@ -35,6 +35,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,6 +51,7 @@ public class PaymentService implements IPaymentService {
     private final IUserDataProvider iUserDataProvider;
 
     private static final Path PAYMENTS_FOLDER_PATH = Paths.get(System.getProperty("user.home"), "data", "payments");
+    private final ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
     @Override
     @Transactional
@@ -184,29 +188,37 @@ public class PaymentService implements IPaymentService {
     }
 
     @Override
-    public void updatePaymentsStatus(UpdatePaymentStatus updatePaymentStatus){
+    public void updatePaymentsStatus(UpdatePaymentStatus updatePaymentStatus) {
         Optional<Admin> currentAdmin = iUserDataProvider.getCurrentAdmin();
         List<Payment> allPayments = paymentRepository.findAllById(updatePaymentStatus.getIds());
-        if (currentAdmin.isPresent() && !allPayments.isEmpty() && updatePaymentStatus.getNewPaymentStatus() != PaymentStatus.CREATED){
+
+        if (currentAdmin.isPresent() && !allPayments.isEmpty() && updatePaymentStatus.getNewPaymentStatus() != PaymentStatus.CREATED) {
             Admin admin = currentAdmin.get();
+
             List<Payment> payments = allPayments.stream()
                     .filter(payment -> payment.getStatus() == PaymentStatus.CREATED)
+                    .collect(Collectors.toList());
+
+            List<CompletableFuture<Void>> futures = payments.stream()
+                    .map(payment -> CompletableFuture.runAsync(() -> {
+                        PaymentStatus oldStatus = payment.getStatus();
+                        PaymentStatusChange paymentStatusChange = PaymentStatusChange.builder()
+                                .payment(payment)
+                                .admin(admin)
+                                .changeDate(new Date())
+                                .newStatus(updatePaymentStatus.getNewPaymentStatus())
+                                .oldStatus(oldStatus)
+                                .build();
+
+                        payment.setStatus(updatePaymentStatus.getNewPaymentStatus());
+                        paymentStatusChangeRepository.save(paymentStatusChange);
+                    }, executorService))
                     .toList();
-            List<PaymentStatusChange> paymentStatusChanges = new ArrayList<>();
-            payments.forEach(payment -> {
-                PaymentStatus oldStatus = payment.getStatus();
-                PaymentStatusChange paymentStatusChange = PaymentStatusChange.builder()
-                        .payment(payment)
-                        .admin(admin)
-                        .changeDate(new Date())
-                        .newStatus(updatePaymentStatus.getNewPaymentStatus())
-                        .oldStatus(oldStatus)
-                        .build();
-                paymentStatusChanges.add(paymentStatusChange);
-                payment.setStatus(updatePaymentStatus.getNewPaymentStatus());
-            });
+
+            // Wait for all futures to complete
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
             paymentRepository.saveAll(payments);
-            paymentStatusChangeRepository.saveAll(paymentStatusChanges);
         }
     }
 
