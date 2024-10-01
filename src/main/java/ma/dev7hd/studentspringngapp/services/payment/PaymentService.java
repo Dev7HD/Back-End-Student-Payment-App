@@ -187,10 +187,10 @@ public class PaymentService implements IPaymentService {
     public void updatePaymentsStatus(UpdatePaymentStatus updatePaymentStatus){
         Optional<Admin> currentAdmin = iUserDataProvider.getCurrentAdmin();
         List<Payment> allPayments = paymentRepository.findAllById(updatePaymentStatus.getIds());
-        if (currentAdmin.isPresent() && !allPayments.isEmpty()){
+        if (currentAdmin.isPresent() && !allPayments.isEmpty() && updatePaymentStatus.getNewPaymentStatus() != PaymentStatus.CREATED){
             Admin admin = currentAdmin.get();
             List<Payment> payments = allPayments.stream()
-                    .filter(payment -> payment.getStatus() != updatePaymentStatus.getNewPaymentStatus())
+                    .filter(payment -> payment.getStatus() == PaymentStatus.CREATED)
                     .toList();
             List<PaymentStatusChange> paymentStatusChanges = new ArrayList<>();
             payments.forEach(payment -> {
