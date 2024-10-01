@@ -54,5 +54,20 @@ public class NotificationController {
         iNotificationService.toggleAdminNotifications(notificationIds);
     }
 
+    @PatchMapping("/student/toggle-seen")
+    boolean toggleStudentNotificationSeen(Long id){
+        return iNotificationService.toggleStudentNotificationSeen(id);
+    }
+
+    @DeleteMapping("/student/delete")
+    void deleteStudentNotification(Long id){
+        iNotificationService.deleteStudentNotification(id);
+    }
+
+    @PatchMapping("/student/seen")
+    void studentNotificationSeen(Long id){
+        iNotificationService.studentNotificationSeen(id);
+    }
+
 
 }

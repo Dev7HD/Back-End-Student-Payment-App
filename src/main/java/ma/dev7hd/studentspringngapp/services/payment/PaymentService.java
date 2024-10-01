@@ -227,7 +227,7 @@ public class PaymentService implements IPaymentService {
         UUID paymentId = notificationService.getPaymentIDAndMarkAsRead(notificationId);
         Optional<Student> optionalStudent = iUserDataProvider.getCurrentStudent();
         InfoPaymentDTO paymentDTO = getPaymentById(paymentId).getBody();
-        if(optionalStudent.isPresent() && paymentDTO != null){
+        if(optionalStudent.isPresent() && paymentDTO != null && paymentDTO.getStatus() != PaymentStatus.CREATED){
             InfoStudentPaymentDTO studentPaymentDTO = modelMapper.map(paymentDTO, InfoStudentPaymentDTO.class);
             return ResponseEntity.ok(studentPaymentDTO);
         }
