@@ -163,12 +163,22 @@ public class PaymentService implements IPaymentService {
         }
     }
 
-    @Override
+    /*@Override
     public Page<InfoStatusChangesDTO> getPaymentsStatusChangers(String email, UUID paymentId, PaymentStatus newStatus, PaymentStatus oldStatus, int page, int size){
         Admin admin = email != null ? iUserDataProvider.getAdminByEmail(email).orElse(null) : null;
         Payment payment = paymentId != null ? paymentRepository.findById(paymentId).orElse(null) : null;
         Page<PaymentStatusChange> statusChanges = paymentStatusChangeRepository.findAll(admin, payment, newStatus, oldStatus, PageRequest.of(page, size));
         return convertChanges(statusChanges);
+    }*/
+
+    @Override
+    public InfoStatusChangesDTO getPaymentsStatusChanges(UUID paymentId) {
+        Optional<Payment> optionalPayment = paymentRepository.findById(paymentId);
+        if(optionalPayment.isPresent()) {
+            Payment payment = optionalPayment.get();
+            Optional<PaymentStatusChange> optionalPaymentStatusChange = paymentStatusChangeRepository.findByPayment(payment);
+            return optionalPaymentStatusChange.map(this::convertChanges).orElse(null);
+        } else throw new RuntimeException("Payment not found");
     }
 
     @Override
@@ -263,8 +273,8 @@ public class PaymentService implements IPaymentService {
     }
 
 
-    private Page<InfoStatusChangesDTO> convertChanges(Page<PaymentStatusChange> paymentStatusChanges) {
-        return paymentStatusChanges.map(change -> modelMapper.map(change, InfoStatusChangesDTO.class));
+    private InfoStatusChangesDTO convertChanges(PaymentStatusChange paymentStatusChange) {
+        return modelMapper.map(paymentStatusChange, InfoStatusChangesDTO.class);
     }
 
     private InfoPaymentDTO convertPaymentToDto(Payment payment) {

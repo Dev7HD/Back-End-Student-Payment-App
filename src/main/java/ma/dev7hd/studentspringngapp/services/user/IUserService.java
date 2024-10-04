@@ -10,6 +10,7 @@ import ma.dev7hd.studentspringngapp.entities.registrations.PendingStudent;
 import ma.dev7hd.studentspringngapp.enumirat.DepartmentName;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,12 @@ public interface IUserService {
 
     @Transactional
     ResponseEntity<String> deleteUserByEmail(String email);
+
+    @Transactional
+    InfosAdminDTO updateAdmin(InfosAdminDTO adminDTO);
+
+    @Transactional
+    Boolean toggleAdminAccount(String email) throws ChangeSetPersister.NotFoundException;
 
     List<InfosStudentDTO> getAllStudents();
 

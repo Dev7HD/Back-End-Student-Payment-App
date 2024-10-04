@@ -32,7 +32,9 @@ public interface IPaymentService {
 
     ResponseEntity<List<InfoPaymentDTO>> getStudentPayments(String code);
 
-    Page<InfoStatusChangesDTO> getPaymentsStatusChangers(String email, UUID paymentId, PaymentStatus newStatus, PaymentStatus oldStatus, int page, int size);
+    //Page<InfoStatusChangesDTO> getPaymentsStatusChangers(String email, UUID paymentId, PaymentStatus newStatus, PaymentStatus oldStatus, int page, int size);
+
+    InfoStatusChangesDTO getPaymentsStatusChanges(UUID paymentId);
 
     Page<InfoAdminPaymentDTO> getPaymentsByCriteriaAsAdmin(String email, String code, Double min, Double max, PaymentStatus status, PaymentType type, int page, int size);
 

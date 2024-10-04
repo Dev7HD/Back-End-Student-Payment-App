@@ -13,6 +13,7 @@ import ma.dev7hd.studentspringngapp.enumirat.DepartmentName;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
 import ma.dev7hd.studentspringngapp.services.dataFromFile.ILoadStudentsService;
 import ma.dev7hd.studentspringngapp.services.user.IUserService;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -267,6 +268,18 @@ public class UserRestController {
     @PutMapping("/multiple/reset-pw")
     public ResponseEntity<String> resetPasswordToMultipleUsers(@RequestBody List<String> emails) {
         return iUserService.resetPasswordToMultipleUsers(emails);
+    }
+
+    @PutMapping("/admin/update")
+    public ResponseEntity<InfosAdminDTO> updateAdmin(@RequestBody InfosAdminDTO adminDTO){
+        InfosAdminDTO infosAdminDTO = iUserService.updateAdmin(adminDTO);
+        return infosAdminDTO != null ? ResponseEntity.ok(infosAdminDTO) : ResponseEntity.badRequest().build();
+    }
+
+    @PatchMapping("/admin/toggle-account")
+    public ResponseEntity<Boolean> toggleAdminAccount(String email) throws ChangeSetPersister.NotFoundException {
+        Boolean account = iUserService.toggleAdminAccount(email);
+        return account != null ? ResponseEntity.ok(account) : ResponseEntity.badRequest().build();
     }
 
 }

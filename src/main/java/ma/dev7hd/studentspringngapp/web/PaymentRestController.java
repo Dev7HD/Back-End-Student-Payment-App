@@ -118,19 +118,10 @@ public class PaymentRestController {
         return iPaymentService.getReceipt(paymentId);
     }
 
-    /**
-     * Get a list of the status that was changed, the date and the admins that make this changes
-     * @return List<InfoStatusChangesDTO>
-     */
-    @GetMapping("/changes")
-    public Page<InfoStatusChangesDTO> changes(
-            @RequestParam(required = false) String email,
-            @RequestParam(required = false) UUID paymentId,
-            @RequestParam(required = false) PaymentStatus newStatus,
-            @RequestParam(required = false) PaymentStatus oldStatus,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return iPaymentService.getPaymentsStatusChangers(email, paymentId, newStatus, oldStatus, page, size);
+    @GetMapping("/status-change-info")
+    public ResponseEntity<InfoStatusChangesDTO> getPaymentsStatusChanges(UUID paymentId) {
+        InfoStatusChangesDTO paymentsStatusChanges = iPaymentService.getPaymentsStatusChanges(paymentId);
+        return paymentsStatusChanges != null ? ResponseEntity.ok(paymentsStatusChanges) : ResponseEntity.badRequest().build();
     }
 
     /**

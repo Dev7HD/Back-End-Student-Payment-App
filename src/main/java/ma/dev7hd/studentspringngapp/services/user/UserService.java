@@ -26,6 +26,7 @@ import ma.dev7hd.studentspringngapp.services.notification.INotificationService;
 import ma.dev7hd.studentspringngapp.security.services.ISecurityService;
 import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
@@ -72,6 +73,32 @@ public class UserService implements IUserService {
         } else {
             return ResponseEntity.badRequest().body("User not found");
         }
+    }
+
+    @Transactional
+    @Override
+    public InfosAdminDTO updateAdmin(InfosAdminDTO adminDTO){
+        return adminRepository.findById(adminDTO.getEmail())
+                .map(admin -> {
+                    admin.setFirstName(adminDTO.getFirstName());
+                    admin.setLastName(adminDTO.getLastName());
+                    admin.setDepartmentName(adminDTO.getDepartmentName());
+                    Admin saved = adminRepository.save(admin);
+                    return convertAdminToDto(saved);
+                })
+                .orElse(null);
+    }
+
+    @Transactional
+    @Override
+    public Boolean toggleAdminAccount(String email) throws ChangeSetPersister.NotFoundException {
+        return adminRepository.findById(email)
+                .map(admin -> {
+                    admin.setEnabled(!admin.isEnabled());
+                    adminRepository.save(admin);
+                    return admin.isEnabled();
+                })
+                .orElseThrow(ChangeSetPersister.NotFoundException::new);
     }
 
     @Override

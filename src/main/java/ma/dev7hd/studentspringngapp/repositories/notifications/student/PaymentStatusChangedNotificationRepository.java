@@ -8,7 +8,9 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface PaymentStatusChangedNotificationRepository extends JpaRepository<PaymentStatusChangedNotification, Long> {
-    List<PaymentStatusChangedNotification> findAllByStudentEmail(String email);
+
+    @Query("SELECT n FROM PaymentStatusChangedNotification n WHERE n.deleted = FALSE AND n.studentEmail = :studentEmail ")
+    List<PaymentStatusChangedNotification> findAllByStudentEmail(@Param("studentEmail") String email);
 
     @Query("SELECT COUNT(n) FROM PaymentStatusChangedNotification n WHERE n.seen = FALSE AND n.deleted = FALSE AND n.studentEmail = :studentEmail ")
     Long countStudentNonSeenNotifications(@Param("studentEmail") String studentEmail);
