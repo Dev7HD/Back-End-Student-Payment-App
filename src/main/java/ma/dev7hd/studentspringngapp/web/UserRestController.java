@@ -109,7 +109,7 @@ public class UserRestController {
      * @return ResponseEntity<NewStudentDTO>
      */
     @PostMapping("/student/new")
-    public ResponseEntity<NewStudentDTO> saveStudent(@RequestBody NewStudentDTO studentDTO) {
+    public ResponseEntity<InfosStudentDTO> saveStudent(@RequestBody NewStudentDTO studentDTO) {
         return iUserService.saveStudent(studentDTO);
     }
 

@@ -153,10 +153,10 @@ public class UserService implements IUserService {
 
     @Override
     @Transactional
-    public ResponseEntity<NewStudentDTO> saveStudent(@NotNull NewStudentDTO studentDTO) {
+    public ResponseEntity<InfosStudentDTO> saveStudent(@NotNull NewStudentDTO studentDTO) {
         Student student = newStudentProcessing(modelMapper.map(studentDTO, Student.class));
-        userRepository.save(student);
-        return ResponseEntity.ok().body(studentDTO);
+        Student saved = userRepository.save(student);
+        return ResponseEntity.ok().body(convertStudentToDto(saved));
     }
 
     @Override
@@ -484,14 +484,14 @@ public class UserService implements IUserService {
     //PRIVATE METHODS
 
     private Student newStudentProcessing(Student student){
+        String studentCode = iUserDataProvider.generateStudentCode(student.getProgramId(), null);
         student.setPasswordChanged(false);
         student.setEnabled(true);
+        student.setCode(studentCode);
         student.setPassword(passwordEncoder.encode(DEFAULT_PASSWORD));
         Student.updateProgramCountsFromDB(student.getProgramId(),1.0);
         return student;
     }
-
-
 
     private Admin newAdminProcessing(Admin admin){
         admin.setPasswordChanged(false);

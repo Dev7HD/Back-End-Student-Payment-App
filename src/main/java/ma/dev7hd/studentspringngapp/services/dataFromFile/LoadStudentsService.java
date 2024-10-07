@@ -2,10 +2,11 @@ package ma.dev7hd.studentspringngapp.services.dataFromFile;
 
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
-import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewStudentDTO;
+import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfosStudentDTO;
 import ma.dev7hd.studentspringngapp.entities.users.Student;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
 import ma.dev7hd.studentspringngapp.repositories.users.StudentRepository;
+import ma.dev7hd.studentspringngapp.services.global.IUserDataProvider;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,6 +22,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -29,9 +31,10 @@ import java.util.stream.IntStream;
 public class LoadStudentsService implements ILoadStudentsService {
     private final StudentRepository studentRepository;
     private final PasswordEncoder passwordEncoder;
+    private final IUserDataProvider userDataProvider;
 
     private final String DEFAULT_PASSWORD = "123456";
-    private final List<String> DOC_HEADER = List.of("email", "firstName", "lastName", "code", "programId");
+    private final List<String> DOC_HEADER = List.of("email", "firstName", "lastName", "programId");
     private final ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
     @Transactional
@@ -39,6 +42,8 @@ public class LoadStudentsService implements ILoadStudentsService {
     public ResponseEntity<String> uploadStudentFile(@NotNull MultipartFile file) throws Exception {
         // Start time
         Instant start = Instant.now();
+
+        AtomicReference<Integer> maxCodeValue = new AtomicReference<>(studentRepository.findLastIdentifierByProgram().orElse(1000));
 
         String fileType = getFileExtension(Objects.requireNonNull(file.getOriginalFilename()));
 
@@ -54,24 +59,25 @@ public class LoadStudentsService implements ILoadStudentsService {
             return ResponseEntity.badRequest().body("Invalid table headers.");
         }
 
-        List<NewStudentDTO> students = new ArrayList<>();
+        List<InfosStudentDTO> students = new ArrayList<>();
         List<Integer> errorRowIndexes = new ArrayList<>();
 
         // Create tasks for processing rows in parallel using CompletableFuture
-        List<CompletableFuture<NewStudentDTO>> futures = IntStream.range(1, sheet.getLastRowNum() + 1)
+        List<CompletableFuture<InfosStudentDTO>> futures = IntStream.range(1, sheet.getLastRowNum() + 1)
                 .mapToObj(i -> CompletableFuture.supplyAsync(() -> {
                     Row row = sheet.getRow(i);
+                    maxCodeValue.updateAndGet(v -> v + 1);
                     if (!validateRow(row)) {
                         errorRowIndexes.add(row.getRowNum());
                         return null;
                     }
-                    return processExcelRow(row);
+                    return processExcelRow(row, maxCodeValue.get());
                 }, executorService))
                 .toList();
 
         // Collect results from the futures
-        for (CompletableFuture<NewStudentDTO> future : futures) {
-            NewStudentDTO studentDTO = future.get(); // This will wait for each thread to complete
+        for (CompletableFuture<InfosStudentDTO> future : futures) {
+            InfosStudentDTO studentDTO = future.get(); // This will wait for each thread to complete
             if (studentDTO != null) {
                 students.add(studentDTO);
             }
@@ -113,23 +119,21 @@ public class LoadStudentsService implements ILoadStudentsService {
         return ResponseEntity.ok(savedMessage + " " + timeSpent + existedMessage + rowErrorMessage);
     }
 
-    private Map<String, Integer> saveStudentsToDatabaseParallel(List<NewStudentDTO> students) throws InterruptedException, ExecutionException {
+    private Map<String, Integer> saveStudentsToDatabaseParallel(List<InfosStudentDTO> students) throws InterruptedException, ExecutionException {
         Set<String> allEmails = studentRepository.findAllEmails();
-        Set<String> allCodes = studentRepository.findAllCodes();
 
         // Create a list to hold the future results
         List<CompletableFuture<Student>> futures = students.stream()
-                .filter(dto -> !allEmails.contains(dto.getEmail()) && !allCodes.contains(dto.getCode()))
+                .filter(dto -> !allEmails.contains(dto.getEmail()) )
                 .map(dto -> CompletableFuture.supplyAsync(() -> {
                     Student student = new Student();
                     student.setEmail(dto.getEmail());
                     student.setFirstName(dto.getFirstName());
                     student.setLastName(dto.getLastName());
-                    student.setCode(dto.getCode());
                     student.setProgramId(dto.getProgramId());
                     student.setPassword(passwordEncoder.encode(DEFAULT_PASSWORD));
                     student.setPasswordChanged(false);
-                    student.setEnabled(true);
+                    student.setCode(dto.getCode());
                     Student.updateProgramCountsFromDB(student.getProgramId(), 1.0);
                     return student;
                 }, executorService))
@@ -178,14 +182,17 @@ public class LoadStudentsService implements ILoadStudentsService {
         return "";
     }
 
-    private NewStudentDTO processExcelRow(Row row) {
+    private InfosStudentDTO processExcelRow(Row row, Integer maxCodeValue) {
         try {
-            NewStudentDTO studentDTO = new NewStudentDTO();
+            InfosStudentDTO studentDTO = new InfosStudentDTO();
             studentDTO.setEmail(row.getCell(0).getStringCellValue());
             studentDTO.setFirstName(row.getCell(1).getStringCellValue());
             studentDTO.setLastName(row.getCell(2).getStringCellValue());
-            studentDTO.setCode(row.getCell(3).getStringCellValue());
-            studentDTO.setProgramId(ProgramID.valueOf(row.getCell(4).getStringCellValue()));
+            studentDTO.setProgramId(ProgramID.valueOf(row.getCell(3).getStringCellValue()));
+            studentDTO.setCode(maxCodeValue.toString());
+            studentDTO.setEnabled(true);
+            String studentCode = userDataProvider.generateStudentCode(studentDTO.getProgramId(), maxCodeValue);
+            studentDTO.setCode(studentCode);
             return studentDTO;
         } catch (IllegalArgumentException e) {
             throw new RuntimeException(e);
@@ -197,8 +204,7 @@ public class LoadStudentsService implements ILoadStudentsService {
                 DOC_HEADER.get(0).equalsIgnoreCase(headerRow.getCell(0).getStringCellValue()) &&
                 DOC_HEADER.get(1).equalsIgnoreCase(headerRow.getCell(1).getStringCellValue()) &&
                 DOC_HEADER.get(2).equalsIgnoreCase(headerRow.getCell(2).getStringCellValue()) &&
-                DOC_HEADER.get(3).equalsIgnoreCase(headerRow.getCell(3).getStringCellValue()) &&
-                DOC_HEADER.get(4).equalsIgnoreCase(headerRow.getCell(4).getStringCellValue());
+                DOC_HEADER.get(3).equalsIgnoreCase(headerRow.getCell(3).getStringCellValue());
     }
 
     private boolean validateRow(Row row) {
@@ -206,9 +212,9 @@ public class LoadStudentsService implements ILoadStudentsService {
             if (row.getCell(0).getCellType() != CellType.STRING && row.getCell(0).getStringCellValue().matches("[a-z]{4}[a-z0-9._%+-]+@[a-z]{2,3}[a-z0-9.-]+\\.[a-z]{2,3}")) return false; //Email
             if (row.getCell(1).getCellType() != CellType.STRING) return false; //FirstName
             if (row.getCell(2).getCellType() != CellType.STRING) return false; //LastName
-            if (row.getCell(3).getCellType() != CellType.STRING && row.getCell(3).getStringCellValue().matches("[a-z]{1,2}[0-9]{4,8}+[a-z]?")) return false; //Code
-            if (row.getCell(4).getCellType() != CellType.STRING || ProgramID.valueOf(row.getCell(4).getStringCellValue()) == null) return false; // ProgramID
+            if (row.getCell(3).getCellType() != CellType.STRING || ProgramID.valueOf(row.getCell(3).getStringCellValue()) == null) return false; // ProgramID
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             return false;
         }
         return true;

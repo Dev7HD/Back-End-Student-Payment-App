@@ -19,7 +19,7 @@ import java.util.*;
 @Setter
 public class Student extends User {
 
-    @Pattern(regexp = "[a-z]{1,2}[0-9]{4,8}+[a-z]?",
+    @Pattern(regexp = "[a-z]{3}[0-9]{4,8}+[a-z]?",
             flags = Pattern.Flag.CASE_INSENSITIVE,
             message = "Code invalid format")
     private String code;

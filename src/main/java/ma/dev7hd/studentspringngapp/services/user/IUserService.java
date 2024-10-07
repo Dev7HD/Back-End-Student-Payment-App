@@ -40,7 +40,7 @@ public interface IUserService {
     ResponseEntity<NewAdminDTO> saveAdmin(@NotNull NewAdminDTO newAdminDTO);
 
     @Transactional
-    ResponseEntity<NewStudentDTO> saveStudent(@NotNull NewStudentDTO studentDTO);
+    ResponseEntity<InfosStudentDTO> saveStudent(@NotNull NewStudentDTO studentDTO);
 
     @Transactional
     ResponseEntity<String> changePW(@NotNull ChangePWDTO pwDTO);

@@ -42,5 +42,7 @@ public interface StudentRepository extends JpaRepository<Student,String> {
     @Query("SELECT s.code FROM Student s")
     Set<String> findAllCodes();
 
+    @Query("SELECT MAX(SUBSTRING(s.code, LENGTH(s.code) - 3)) FROM Student s ")
+    Optional<Integer> findLastIdentifierByProgram();
 }
 
