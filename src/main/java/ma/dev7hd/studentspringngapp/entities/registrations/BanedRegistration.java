@@ -33,9 +33,6 @@ public class BanedRegistration {
     @Enumerated(EnumType.STRING)
     private ProgramID programID;
 
-    @Column(nullable = false, updatable = false)
-    private String code;
-
     @ManyToOne
     @JoinColumn(name = "admin_id", nullable = false, updatable = false)
     private Admin adminBanner;

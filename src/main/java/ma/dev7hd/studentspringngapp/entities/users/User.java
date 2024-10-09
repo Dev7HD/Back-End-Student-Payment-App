@@ -46,6 +46,8 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String password;
 
+    private String photo;
+
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "addedBy", cascade = CascadeType.ALL)
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private List<Payment> addedPayments;

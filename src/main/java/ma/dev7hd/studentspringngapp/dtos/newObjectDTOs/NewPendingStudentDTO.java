@@ -10,5 +10,4 @@ public class NewPendingStudentDTO {
     String firstName;
     String lastName;
     ProgramID programID;
-    String code;
 }

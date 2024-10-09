@@ -3,6 +3,7 @@ package ma.dev7hd.studentspringngapp.services.user;
 import lombok.AllArgsConstructor;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfosAdminDTO;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfosStudentDTO;
+import ma.dev7hd.studentspringngapp.dtos.infoDTOs.PictureDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewAdminDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewStudentDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewPendingStudentDTO;
@@ -21,9 +22,11 @@ import ma.dev7hd.studentspringngapp.repositories.tokens.UserTokensRepository;
 import ma.dev7hd.studentspringngapp.repositories.users.AdminRepository;
 import ma.dev7hd.studentspringngapp.repositories.users.StudentRepository;
 import ma.dev7hd.studentspringngapp.repositories.users.UserRepository;
+import ma.dev7hd.studentspringngapp.services.dataFromFile.image.IImageService;
 import ma.dev7hd.studentspringngapp.services.global.IUserDataProvider;
 import ma.dev7hd.studentspringngapp.services.notification.INotificationService;
 import ma.dev7hd.studentspringngapp.security.services.ISecurityService;
+import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.crossstore.ChangeSetPersister;
@@ -34,7 +37,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -59,7 +69,10 @@ public class UserService implements IUserService {
     private final IUserDataProvider iUserDataProvider;
 
     private final String DEFAULT_PASSWORD = "123456";
+    private final Path PATH_TO_PHOTOS = Paths.get(System.getProperty("user.home"), "data", "photos");
+    private final Path PATH_TO_REGISTRATION_PHOTOS = Paths.get(System.getProperty("user.home"), "data", "registrations_photos");
     private final ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    private final IImageService imageService;
 
 
     @Override
@@ -153,8 +166,8 @@ public class UserService implements IUserService {
 
     @Override
     @Transactional
-    public ResponseEntity<InfosStudentDTO> saveStudent(@NotNull NewStudentDTO studentDTO) {
-        Student student = newStudentProcessing(modelMapper.map(studentDTO, Student.class));
+    public ResponseEntity<InfosStudentDTO> saveStudent(@NotNull NewStudentDTO studentDTO, MultipartFile photo) throws IOException {
+        Student student = newStudentProcessing(modelMapper.map(studentDTO, Student.class), photo.getBytes());
         Student saved = userRepository.save(student);
         return ResponseEntity.ok().body(convertStudentToDto(saved));
     }
@@ -205,18 +218,36 @@ public class UserService implements IUserService {
 
     @Override
     @Transactional
-    public ResponseEntity<String> registerStudent(@NotNull NewPendingStudentDTO pendingStudentDTO){
+    public ResponseEntity<String> registerStudent(@NotNull NewPendingStudentDTO pendingStudentDTO, MultipartFile photo) throws IOException {
         boolean userIsExistByEmail = userRepository.existsById(pendingStudentDTO.getEmail());
-        boolean studentExistByCode = studentRepository.existsByCode(pendingStudentDTO.getCode());
-        boolean pendingStudentExistByEmailOrCode = pendingStudentRepository.existsByEmailOrCode(pendingStudentDTO.getEmail(), pendingStudentDTO.getCode());
+        boolean pendingStudentExistByEmailOrCode = pendingStudentRepository.existsById(pendingStudentDTO.getEmail());
         boolean bannedExistById = banedRegistrationRepository.existsById(pendingStudentDTO.getEmail());
-        if (userIsExistByEmail || studentExistByCode || pendingStudentExistByEmailOrCode || bannedExistById) {
+
+        if (userIsExistByEmail || pendingStudentExistByEmailOrCode || bannedExistById) {
             return ResponseEntity.badRequest().body("Email or Code already in use or banned");
         }
+        String fileName = UUID.randomUUID().toString();
+        String extension = FilenameUtils.getExtension(photo.getOriginalFilename());
+        Path filePath = PATH_TO_REGISTRATION_PHOTOS.resolve(fileName + "." + extension);
+        if (!Files.exists(PATH_TO_REGISTRATION_PHOTOS)) {
+            Files.createDirectories(PATH_TO_REGISTRATION_PHOTOS);
+        }
+        try {
+            Files.copy(photo.getInputStream(), filePath);
+        } catch (IOException e) {
+            return null;
+        }
+        File file = new File(filePath.toString());
+        String photoUri = file.toURI().toString();
+
         PendingStudent pendingStudent = convertPendingStudentToDto(pendingStudentDTO);
+
+        pendingStudent.setPhoto(photoUri);
         pendingStudent.setRegisterDate(new Date());
+
         PendingStudent savedPendingStudent = pendingStudentRepository.save(pendingStudent);
         notificationService.sendPendingStudentNotifications(savedPendingStudent);
+
         return ResponseEntity.ok().body("The registration was successful.");
     }
 
@@ -240,12 +271,16 @@ public class UserService implements IUserService {
 
     @Override
     @Transactional
-    public ResponseEntity<?> approvingStudentRegistration(@NotNull String email){
+    public ResponseEntity<?> approvingStudentRegistration(@NotNull String email) throws IOException {
         Optional<PendingStudent> optionalPendingStudent = pendingStudentRepository.findById(email);
         if (optionalPendingStudent.isPresent()) {
-            if (!studentRepository.existsByEmailOrCode(optionalPendingStudent.get().getEmail(), optionalPendingStudent.get().getCode())){
+            if (!studentRepository.existsByEmail(optionalPendingStudent.get().getEmail())){
                 PendingStudent pendingStudent = optionalPendingStudent.get();
-                Student approvedStudent = newStudentProcessing(convertPendingStudentToStudent(pendingStudent));
+                byte[] photo = Files.readAllBytes(Path.of(URI.create(pendingStudent.getPhoto())));
+                Student approvedStudent = newStudentProcessing(convertPendingStudentToStudent(pendingStudent), photo);
+                String savePhoto = savePhoto(photo, approvedStudent.getCode());
+                approvedStudent.setPhoto(savePhoto);
+                Files.deleteIfExists(Path.of(URI.create(pendingStudent.getPhoto())));
                 Student savedStudent = studentRepository.save(approvedStudent);
                 pendingStudentRepository.delete(pendingStudent);
                 return ResponseEntity.ok().body(convertStudentToDto(savedStudent));
@@ -336,27 +371,23 @@ public class UserService implements IUserService {
             }
 
             Set<String> allEmails = studentRepository.findAllEmails();
-            Set<String> allCodes = studentRepository.findAllCodes();
 
             // Parallel processing for approving registrations
-            CompletableFuture<List<Student>> approveFuture = CompletableFuture.supplyAsync(() -> {
-                return allPendingStudents.parallelStream()
-                        .filter(registration ->
-                                !allEmails.contains(registration.getEmail()) &&
-                                        !allCodes.contains(registration.getCode())
-                        ).map(registration -> {
-                            Student student = new Student();
-                            student.setEmail(registration.getEmail());
-                            student.setFirstName(registration.getFirstName());
-                            student.setLastName(registration.getLastName());
-                            student.setEnabled(true);
-                            student.setCode(registration.getCode());
-                            student.setPassword(passwordEncoder.encode(DEFAULT_PASSWORD));
-                            student.setPasswordChanged(false);
-                            student.setProgramId(registration.getProgramID());
-                            return student;
-                        }).collect(Collectors.toList());
-            }, executorService);
+            CompletableFuture<List<Student>> approveFuture = CompletableFuture.supplyAsync(() -> allPendingStudents.parallelStream()
+                    .filter(registration ->
+                            !allEmails.contains(registration.getEmail())
+                    ).map(registration -> {
+                        Student student = new Student();
+                        student.setEmail(registration.getEmail());
+                        student.setFirstName(registration.getFirstName());
+                        student.setLastName(registration.getLastName());
+                        student.setEnabled(true);
+                        student.setCode(iUserDataProvider.generateStudentCode(registration.getProgramID(), null));
+                        student.setPassword(passwordEncoder.encode(DEFAULT_PASSWORD));
+                        student.setPasswordChanged(false);
+                        student.setProgramId(registration.getProgramID());
+                        return student;
+                    }).collect(Collectors.toList()), executorService);
 
             List<Student> studentsToApprove = approveFuture.join(); // Wait for completion
 
@@ -410,7 +441,6 @@ public class UserService implements IUserService {
                             .map(pendingStudent -> BanedRegistration.builder()
                                     .banDate(new Date())
                                     .registerDate(pendingStudent.getRegisterDate())
-                                    .code(pendingStudent.getCode())
                                     .email(pendingStudent.getEmail())
                                     .firstName(pendingStudent.getFirstName())
                                     .lastName(pendingStudent.getLastName())
@@ -474,23 +504,56 @@ public class UserService implements IUserService {
         List<User> users = userRepository.findAllById(emails);
         if (!users.isEmpty()) {
             List<User> toggledUsers = users.stream()
-                    .peek(user -> {
-                        user.setEnabled(!user.isEnabled());
-                    }).toList();
+                    .peek(user -> user.setEnabled(!user.isEnabled())).toList();
             userRepository.saveAll(toggledUsers);
         }
     }
 
+    @Override
+    public PictureDTO getProfilePicture(String email) throws IOException {
+        Optional<Student> optionalStudent = studentRepository.findById(email);
+        if (optionalStudent.isPresent()) {
+            Student student = optionalStudent.get();
+            PictureDTO pictureDTO = new PictureDTO();
+            pictureDTO.setPicture(Files.readAllBytes(Path.of(URI.create(student.getPhoto()))));
+            pictureDTO.setPictureName(student.getCode());
+            return pictureDTO;
+        }
+        return null;
+    }
+
     //PRIVATE METHODS
 
-    private Student newStudentProcessing(Student student){
+    private Student newStudentProcessing(Student student, byte[] photo) throws IOException {
         String studentCode = iUserDataProvider.generateStudentCode(student.getProgramId(), null);
+
+        if (photo != null){
+            byte[] newPhoto = imageService.resizeImageWithAspectRatio(photo);
+            String photoUri = savePhoto(newPhoto, studentCode);
+            student.setPhoto(photoUri);
+        }
+
         student.setPasswordChanged(false);
         student.setEnabled(true);
         student.setCode(studentCode);
         student.setPassword(passwordEncoder.encode(DEFAULT_PASSWORD));
         Student.updateProgramCountsFromDB(student.getProgramId(),1.0);
         return student;
+    }
+
+    private String savePhoto(byte[] photo, String studentCode){
+        String fileName = studentCode + ".jpg";
+        Path filePath = PATH_TO_PHOTOS.resolve(fileName);
+        try {
+            if (!Files.exists(PATH_TO_PHOTOS)) {
+                Files.createDirectories(PATH_TO_PHOTOS);
+            }
+            Files.write(filePath, photo);
+        } catch (IOException e) {
+            return null;
+        }
+        File file = new File(filePath.toString());
+        return file.toURI().toString();
     }
 
     private Admin newAdminProcessing(Admin admin){

@@ -15,7 +15,7 @@ import java.util.Set;
 
 public interface StudentRepository extends JpaRepository<Student,String> {
     List<Student> findStudentByProgramId(ProgramID programId);
-    boolean existsByEmailOrCode(@NotNull String email, @NotNull String code);
+    boolean existsByEmail(@NotNull String email);
 
     boolean existsByCode(@NotNull String code);
 
@@ -38,9 +38,6 @@ public interface StudentRepository extends JpaRepository<Student,String> {
 
     @Query("SELECT s.email FROM Student s")
     Set<String> findAllEmails();
-
-    @Query("SELECT s.code FROM Student s")
-    Set<String> findAllCodes();
 
     @Query("SELECT MAX(SUBSTRING(s.code, LENGTH(s.code) - 3)) FROM Student s ")
     Optional<Integer> findLastIdentifierByProgram();

@@ -1,6 +1,7 @@
 package ma.dev7hd.studentspringngapp.repositories.registrations;
 
 import ma.dev7hd.studentspringngapp.entities.registrations.PendingStudent;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,5 +17,5 @@ public interface PendingStudentRepository extends JpaRepository<PendingStudent, 
             @Param("email") String email,
             Pageable pageable);
 
-    boolean existsByEmailOrCode(String email, String code);
+    boolean existsById(@NotNull String email);
 }

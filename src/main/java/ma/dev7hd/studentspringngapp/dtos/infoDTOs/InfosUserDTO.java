@@ -9,4 +9,5 @@ public class InfosUserDTO {
     private String firstName;
     private String lastName;
     private boolean enabled;
+    private String photo;
 }

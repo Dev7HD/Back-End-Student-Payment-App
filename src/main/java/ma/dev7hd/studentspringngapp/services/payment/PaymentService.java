@@ -163,14 +163,6 @@ public class PaymentService implements IPaymentService {
         }
     }
 
-    /*@Override
-    public Page<InfoStatusChangesDTO> getPaymentsStatusChangers(String email, UUID paymentId, PaymentStatus newStatus, PaymentStatus oldStatus, int page, int size){
-        Admin admin = email != null ? iUserDataProvider.getAdminByEmail(email).orElse(null) : null;
-        Payment payment = paymentId != null ? paymentRepository.findById(paymentId).orElse(null) : null;
-        Page<PaymentStatusChange> statusChanges = paymentStatusChangeRepository.findAll(admin, payment, newStatus, oldStatus, PageRequest.of(page, size));
-        return convertChanges(statusChanges);
-    }*/
-
     @Override
     public InfoStatusChangesDTO getPaymentsStatusChanges(UUID paymentId) {
         Optional<Payment> optionalPayment = paymentRepository.findById(paymentId);

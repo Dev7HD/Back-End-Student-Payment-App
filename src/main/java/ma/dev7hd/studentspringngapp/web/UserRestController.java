@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import lombok.AllArgsConstructor;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfosAdminDTO;
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InfosStudentDTO;
+import ma.dev7hd.studentspringngapp.dtos.infoDTOs.PictureDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewAdminDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewPendingStudentDTO;
 import ma.dev7hd.studentspringngapp.dtos.newObjectDTOs.NewStudentDTO;
@@ -11,15 +12,18 @@ import ma.dev7hd.studentspringngapp.dtos.otherDTOs.ChangePWDTO;
 import ma.dev7hd.studentspringngapp.entities.registrations.PendingStudent;
 import ma.dev7hd.studentspringngapp.enumirat.DepartmentName;
 import ma.dev7hd.studentspringngapp.enumirat.ProgramID;
-import ma.dev7hd.studentspringngapp.services.dataFromFile.ILoadStudentsService;
+import ma.dev7hd.studentspringngapp.services.dataFromFile.excel.ILoadStudentsService;
 import ma.dev7hd.studentspringngapp.services.user.IUserService;
 import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -108,9 +112,9 @@ public class UserRestController {
      * @param studentDTO student information (email, firstName, lastName, code and programId)
      * @return ResponseEntity<NewStudentDTO>
      */
-    @PostMapping("/student/new")
-    public ResponseEntity<InfosStudentDTO> saveStudent(@RequestBody NewStudentDTO studentDTO) {
-        return iUserService.saveStudent(studentDTO);
+    @PostMapping(value = "/student/new", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<InfosStudentDTO> saveStudent(@ModelAttribute NewStudentDTO studentDTO, @Parameter(description = "Photo to upload") @RequestPart(value = "photo")MultipartFile photo) throws IOException {
+        return iUserService.saveStudent(studentDTO, photo);
     }
 
     /**
@@ -196,13 +200,13 @@ public class UserRestController {
      * @param pendingStudentDTO the new student information
      * @return ResponseEntity<String>
      */
-    @PostMapping("/register")
-    public ResponseEntity<String> registerStudent(@RequestBody NewPendingStudentDTO pendingStudentDTO) {
-        return iUserService.registerStudent(pendingStudentDTO);
+    @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> registerStudent(@ModelAttribute NewPendingStudentDTO pendingStudentDTO, @Parameter(description = "Photo to upload") @RequestPart(value = "photo")MultipartFile photo) throws IOException {
+        return iUserService.registerStudent(pendingStudentDTO, photo);
     }
 
-    @PostMapping("/approve")
-    public ResponseEntity<?> approvingStudentRegistration(String email) {
+    @PostMapping( "/approve")
+    public ResponseEntity<?> approvingStudentRegistration(String email) throws IOException {
         return iUserService.approvingStudentRegistration(email);
     }
 
@@ -280,6 +284,20 @@ public class UserRestController {
     public ResponseEntity<Boolean> toggleAdminAccount(String email) throws ChangeSetPersister.NotFoundException {
         Boolean account = iUserService.toggleAdminAccount(email);
         return account != null ? ResponseEntity.ok(account) : ResponseEntity.badRequest().build();
+    }
+
+    @GetMapping("/profile-picture")
+    public ResponseEntity<?> getProfilePicture(String email) throws IOException {
+        PictureDTO pictureDTO = iUserService.getProfilePicture(email);
+        if (pictureDTO != null) {
+            // Set response headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Content-Disposition", "inline; filename=" + pictureDTO.getPictureName() +".jpg");
+
+            return new ResponseEntity<>(pictureDTO.getPicture(), headers, HttpStatus.OK);
+        } else {
+            return ResponseEntity.badRequest().body("The payment must be 'VALIDATED' to be downloaded");
+        }
     }
 
 }

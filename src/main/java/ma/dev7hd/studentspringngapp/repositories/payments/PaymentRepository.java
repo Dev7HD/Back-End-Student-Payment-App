@@ -27,7 +27,7 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
             "(:min IS NOT NULL AND :max IS NULL AND p.amount >= :min) OR " +
             "(:min IS NULL AND :max IS NOT NULL AND p.amount <= :max)) AND " +
             "(:type IS NULL OR p.type = :type) AND " +
-            "(:status IS NULL OR p.status = :status)")
+            "(:status IS NULL OR p.status = :status) ORDER BY p.registerDate")
     Page<Payment> findByFilters(
             @Param("code") String code,
             @Param("email") String email,
@@ -45,7 +45,7 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
             "LEFT JOIN payment p ON MONTH(p.date) = m.month " +
             "AND (:month IS NULL OR MONTH(p.date) = :month) " +
             "GROUP BY m.month " +
-            "ORDER BY m.month ASC",
+            "ORDER BY m.month",
             nativeQuery = true)
     List<Long[]> countAllPaymentsGroupByDateAndOptionalMonth(@Param("month") Integer month);
 

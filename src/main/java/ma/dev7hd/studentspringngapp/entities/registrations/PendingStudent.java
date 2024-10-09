@@ -31,7 +31,6 @@ public class PendingStudent {
     @Column(nullable = false, updatable = false)
     private ProgramID programID;
 
-    @Column(nullable = false, updatable = false, unique = true)
-    private String code;
+    private String photo;
 
 }
