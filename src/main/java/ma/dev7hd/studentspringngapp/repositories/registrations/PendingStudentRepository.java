@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 
 public interface PendingStudentRepository extends JpaRepository<PendingStudent, String> {
 
@@ -18,4 +20,7 @@ public interface PendingStudentRepository extends JpaRepository<PendingStudent, 
             Pageable pageable);
 
     boolean existsById(@NotNull String email);
+
+    @Query("SELECT p.photo FROM PendingStudent p WHERE p.email IN :emails")
+    List<String> findAllPhotosById(List<String> emails);
 }

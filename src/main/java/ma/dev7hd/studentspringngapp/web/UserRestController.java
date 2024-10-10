@@ -211,12 +211,12 @@ public class UserRestController {
     }
 
     @PostMapping("/decline")
-    public ResponseEntity<String> declineStudentRegistration(String email) {
+    public ResponseEntity<String> declineStudentRegistration(String email) throws IOException {
         return iUserService.declineStudentRegistration(email);
     }
 
     @PostMapping("/ban")
-    public ResponseEntity<String> banStudentRegistration(String email) {
+    public ResponseEntity<String> banStudentRegistration(String email) throws IOException {
         return iUserService.banStudentRegistration(email);
     }
 
@@ -296,7 +296,19 @@ public class UserRestController {
 
             return new ResponseEntity<>(pictureDTO.getPicture(), headers, HttpStatus.OK);
         } else {
-            return ResponseEntity.badRequest().body("The payment must be 'VALIDATED' to be downloaded");
+            return ResponseEntity.badRequest().body("Provided email is not correct");
+        }
+    }
+
+    @PatchMapping(value = "/{email}/update-photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updateStudentPhoto(@PathVariable String email, @Parameter(description = "New photo to upload") @RequestPart(value = "photo") MultipartFile photo) throws IOException {
+        byte[] photoBytes = iUserService.updateStudentPhoto(email, photo);
+        if(photoBytes != null) {
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Content-Disposition", "inline; filename=new-photo.jpg");
+            return new ResponseEntity<>(photoBytes, headers, HttpStatus.OK);
+        } else {
+            return ResponseEntity.badRequest().body("Provided email or photo is not accepted");
         }
     }
 

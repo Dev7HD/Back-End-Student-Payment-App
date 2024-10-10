@@ -65,17 +65,19 @@ public interface IUserService {
     ResponseEntity<?> approvingStudentRegistration(@NotNull String email) throws IOException;
 
     @Transactional
-    ResponseEntity<String> declineStudentRegistration(@NotNull String email);
+    ResponseEntity<String> declineStudentRegistration(@NotNull String email) throws IOException;
 
     @Transactional
     ResponseEntity<String> toggleEnableUserAccount(String email);
 
     @Transactional
-    ResponseEntity<String> banStudentRegistration(@NotNull String email);
+    ResponseEntity<String> banStudentRegistration(@NotNull String email) throws IOException;
 
     ResponseEntity<InfosStudentDTO> updateStudentInfo(@NotNull InfosStudentDTO studentDTO);
 
     ResponseEntity<PendingStudent> getPendingStudentByEmail(String email);
+
+    byte[] updateStudentPhoto(String email, MultipartFile photo) throws IOException;
 
     @Transactional
     ResponseEntity<String> approveMultipleRegistrations(List<String> emails);

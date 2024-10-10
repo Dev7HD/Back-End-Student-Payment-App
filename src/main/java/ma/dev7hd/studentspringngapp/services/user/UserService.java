@@ -167,7 +167,10 @@ public class UserService implements IUserService {
     @Override
     @Transactional
     public ResponseEntity<InfosStudentDTO> saveStudent(@NotNull NewStudentDTO studentDTO, MultipartFile photo) throws IOException {
-        Student student = newStudentProcessing(modelMapper.map(studentDTO, Student.class), photo.getBytes());
+        Student student = newStudentProcessing(modelMapper.map(studentDTO, Student.class));
+        byte[] resizedPhoto = imageService.resizeImageWithAspectRatio(photo.getBytes());
+        String savePhotoUri = savePhoto(resizedPhoto, student.getCode());
+        student.setPhoto(savePhotoUri);
         Student saved = userRepository.save(student);
         return ResponseEntity.ok().body(convertStudentToDto(saved));
     }
@@ -276,10 +279,13 @@ public class UserService implements IUserService {
         if (optionalPendingStudent.isPresent()) {
             if (!studentRepository.existsByEmail(optionalPendingStudent.get().getEmail())){
                 PendingStudent pendingStudent = optionalPendingStudent.get();
-                byte[] photo = Files.readAllBytes(Path.of(URI.create(pendingStudent.getPhoto())));
-                Student approvedStudent = newStudentProcessing(convertPendingStudentToStudent(pendingStudent), photo);
-                String savePhoto = savePhoto(photo, approvedStudent.getCode());
-                approvedStudent.setPhoto(savePhoto);
+
+                Student approvedStudent = newStudentProcessing(convertPendingStudentToStudent(pendingStudent));
+
+                String photo = photoProcessingForApprovedStudent(pendingStudent.getPhoto(), approvedStudent.getCode());
+
+                approvedStudent.setPhoto(photo);
+
                 Files.deleteIfExists(Path.of(URI.create(pendingStudent.getPhoto())));
                 Student savedStudent = studentRepository.save(approvedStudent);
                 pendingStudentRepository.delete(pendingStudent);
@@ -291,16 +297,32 @@ public class UserService implements IUserService {
         }
     }
 
+    private String photoProcessingForApprovedStudent(String pendingStudentPhotoUri , String studentCode) throws IOException {
+        byte[] photo = Files.readAllBytes(Path.of(URI.create(pendingStudentPhotoUri)));
+        byte[] resizedPhoto = imageService.resizeImageWithAspectRatio(photo);
+        String savedPhoto = savePhoto(resizedPhoto, studentCode);
+        deletePhoto(pendingStudentPhotoUri);
+        return savedPhoto;
+    }
+
     @Override
     @Transactional
-    public ResponseEntity<String> declineStudentRegistration(@NotNull String email){
+    public ResponseEntity<String> declineStudentRegistration(@NotNull String email) throws IOException {
         Optional<PendingStudent> optionalPendingStudent = pendingStudentRepository.findById(email);
         if (optionalPendingStudent.isPresent()) {
             PendingStudent pendingStudent = optionalPendingStudent.get();
+
+            deletePhoto(pendingStudent.getPhoto());
+
             pendingStudentRepository.delete(pendingStudent);
+
             return ResponseEntity.ok().body("The registration was declined successfully.");
         }
         return ResponseEntity.badRequest().body("Email is not correct.");
+    }
+
+    private void deletePhoto(String photoUri) throws IOException {
+        Files.deleteIfExists(Path.of(URI.create(photoUri)));
     }
 
     @Override
@@ -324,7 +346,7 @@ public class UserService implements IUserService {
 
     @Transactional
     @Override
-    public ResponseEntity<String> banStudentRegistration(@NotNull String email){
+    public ResponseEntity<String> banStudentRegistration(@NotNull String email) throws IOException {
         Optional<PendingStudent> optionalPendingStudent = pendingStudentRepository.findById(email);
         Optional<User> optionalUser = userRepository.findById(iUserDataProvider.getCurrentUserEmail());
         if (optionalPendingStudent.isPresent() && optionalUser.isPresent() && optionalUser.get() instanceof Admin admin) {
@@ -335,7 +357,11 @@ public class UserService implements IUserService {
             banedRegistration.setAdminBanner(admin);
 
             banedRegistrationRepository.save(banedRegistration);
+
+            deletePhoto(pendingStudent.getPhoto());
+
             pendingStudentRepository.delete(pendingStudent);
+
             return ResponseEntity.ok().body("The registration was banned successfully.");
         }
         return ResponseEntity.badRequest().build();
@@ -360,6 +386,21 @@ public class UserService implements IUserService {
     }
 
     @Override
+    public byte[] updateStudentPhoto(String email, MultipartFile photo) throws IOException {
+        Optional<Student> optionalStudent = studentRepository.findById(email);
+        if (optionalStudent.isPresent()) {
+            Student student = optionalStudent.get();
+            byte[] resizedPhoto = imageService.resizeImageWithAspectRatio(photo.getBytes());
+            String savePhoto = savePhoto(resizedPhoto, student.getCode());
+            student.setPhoto(savePhoto);
+            studentRepository.save(student);
+            assert savePhoto != null;
+            return Files.readAllBytes(Path.of(URI.create(savePhoto)));
+        }
+        return null;
+    }
+
+    @Override
     @Transactional
     public ResponseEntity<String> approveMultipleRegistrations(List<String> emails) {
         try {
@@ -377,16 +418,17 @@ public class UserService implements IUserService {
                     .filter(registration ->
                             !allEmails.contains(registration.getEmail())
                     ).map(registration -> {
-                        Student student = new Student();
-                        student.setEmail(registration.getEmail());
-                        student.setFirstName(registration.getFirstName());
-                        student.setLastName(registration.getLastName());
-                        student.setEnabled(true);
-                        student.setCode(iUserDataProvider.generateStudentCode(registration.getProgramID(), null));
-                        student.setPassword(passwordEncoder.encode(DEFAULT_PASSWORD));
-                        student.setPasswordChanged(false);
-                        student.setProgramId(registration.getProgramID());
-                        return student;
+                        Student approvedStudent ;
+
+                        try {
+                            approvedStudent = newStudentProcessing(convertPendingStudentToStudent(registration));
+                            String photo = photoProcessingForApprovedStudent(registration.getPhoto(), approvedStudent.getCode());
+                            approvedStudent.setPhoto(photo);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+
+                        return approvedStudent;
                     }).collect(Collectors.toList()), executorService);
 
             List<Student> studentsToApprove = approveFuture.join(); // Wait for completion
@@ -437,25 +479,37 @@ public class UserService implements IUserService {
 
                 // Parallel processing for banning registrations
                 CompletableFuture<Void> banFuture = CompletableFuture.runAsync(() -> {
-                    List<BanedRegistration> registrationsToBan = pendingStudents.parallelStream()
-                            .map(pendingStudent -> BanedRegistration.builder()
-                                    .banDate(new Date())
-                                    .registerDate(pendingStudent.getRegisterDate())
-                                    .email(pendingStudent.getEmail())
-                                    .firstName(pendingStudent.getFirstName())
-                                    .lastName(pendingStudent.getLastName())
-                                    .programID(pendingStudent.getProgramID())
-                                    .adminBanner(admin)
-                                    .build())
-                            .collect(Collectors.toList());
+                    try {
+                        List<BanedRegistration> registrationsToBan = pendingStudents.parallelStream()
+                                .map(pendingStudent -> BanedRegistration.builder()
+                                        .banDate(new Date())
+                                        .registerDate(pendingStudent.getRegisterDate())
+                                        .email(pendingStudent.getEmail())
+                                        .firstName(pendingStudent.getFirstName())
+                                        .lastName(pendingStudent.getLastName())
+                                        .programID(pendingStudent.getProgramID())
+                                        .adminBanner(admin)
+                                        .build())
+                                .collect(Collectors.toList());
 
-                    banedRegistrationRepository.saveAll(registrationsToBan);
-                    pendingStudentRepository.deleteAll(pendingStudents);
+                        pendingStudents.forEach(registration -> {
+                            try {
+                                deletePhoto(registration.getPhoto());
+                            } catch (IOException e) {
+                                System.out.println("Failed to delete photo for " + registration.getEmail());
+                            }
+                        });
+
+                        banedRegistrationRepository.saveAll(registrationsToBan);
+                        pendingStudentRepository.deleteAll(pendingStudents);
+                    } catch (Exception e) {
+                        System.out.println("Error occurred during banning registrations");
+                    }
                 }, executorService);
 
-                banFuture.join(); // Wait for completion
+                banFuture.join();
 
-                return ResponseEntity.ok(pendingStudents.size() + " registration(s) was banned.");
+                return ResponseEntity.ok(pendingStudents.size() + " registration(s) are banned.");
             }
             return ResponseEntity.badRequest().body("The request must be done by a valid admin.");
 
@@ -466,27 +520,53 @@ public class UserService implements IUserService {
 
     @Override
     @Transactional
-    public void declineMultipleRegistrations(List<String> emails){
-        try {
-            pendingStudentRepository.deleteAllById(emails);
-        } catch (IllegalArgumentException e) {
-            throw new RuntimeException(e);
-        }
+    public void declineMultipleRegistrations(List<String> emails) {
+        List<String> allPhotos = pendingStudentRepository.findAllPhotosById(emails);
+
+        // Handle potential photo deletion errors
+        allPhotos.forEach(photo -> {
+            try {
+                deletePhoto(photo);
+            } catch (IOException e) {
+                System.out.println("Failed to delete photo: " + photo + ". Error: " + e.getMessage());
+            }
+        });
+
+        // Proceed to delete registrations after attempting photo deletion
+        pendingStudentRepository.deleteAllById(emails);
     }
 
     @Override
     @Transactional
-    public ResponseEntity<String> deleteMultipleUsers(List<String> emails){
+    public ResponseEntity<String> deleteMultipleUsers(List<String> emails) {
         List<User> users = userRepository.findAllById(emails);
-        if (users.isEmpty()) return ResponseEntity.badRequest().body("Emails provided not valid.");
+        if (users.isEmpty()) {
+            return ResponseEntity.badRequest().body("Emails provided are not valid.");
+        }
+
+        // Parallel processing of photo deletion for Student users
+        users.stream()
+                .filter(user -> user instanceof Student && user.getPhoto() != null)
+                .forEach(user -> {
+                    try {
+                        deletePhoto(user.getPhoto());
+                    } catch (IOException e) {
+                        System.out.println("Failed to delete photo for user: " + user.getEmail());
+                    }
+                });
+
         userRepository.deleteAll(users);
-        StringBuilder message = new StringBuilder();
+
+        // Construct response message
         int providedCount = emails.size();
         int usersFoundCount = users.size();
-        if (providedCount == usersFoundCount) message.append("All provided users was successfully deleted.");
-        else message.append(usersFoundCount).append(" was deleted and ").append(providedCount - usersFoundCount).append(" not didn't.");
-        return ResponseEntity.ok(message.toString());
+        String message = providedCount == usersFoundCount
+                ? "All provided users were successfully deleted."
+                : String.format("%d users were deleted, but %d emails were not found.", usersFoundCount, providedCount - usersFoundCount);
+
+        return ResponseEntity.ok(message);
     }
+
 
     @Override
     public ResponseEntity<String> resetPasswordToMultipleUsers(List<String> emails) {
@@ -524,14 +604,8 @@ public class UserService implements IUserService {
 
     //PRIVATE METHODS
 
-    private Student newStudentProcessing(Student student, byte[] photo) throws IOException {
+    private Student newStudentProcessing(Student student) throws IOException {
         String studentCode = iUserDataProvider.generateStudentCode(student.getProgramId(), null);
-
-        if (photo != null){
-            byte[] newPhoto = imageService.resizeImageWithAspectRatio(photo);
-            String photoUri = savePhoto(newPhoto, studentCode);
-            student.setPhoto(photoUri);
-        }
 
         student.setPasswordChanged(false);
         student.setEnabled(true);
@@ -548,6 +622,7 @@ public class UserService implements IUserService {
             if (!Files.exists(PATH_TO_PHOTOS)) {
                 Files.createDirectories(PATH_TO_PHOTOS);
             }
+            if(Files.exists(filePath)) deletePhoto(filePath.toUri().toString());
             Files.write(filePath, photo);
         } catch (IOException e) {
             return null;
