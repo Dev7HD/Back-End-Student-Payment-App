@@ -1,4 +1,4 @@
-package ma.dev7hd.studentspringngapp.services.generateReceipt;
+package ma.dev7hd.studentspringngapp.services.generatePDF.receipt;
 
 import ma.dev7hd.studentspringngapp.dtos.infoDTOs.InvoiceDTO;
 

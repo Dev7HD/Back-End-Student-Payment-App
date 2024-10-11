@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8" />
+    <title>Student Profile</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            /*background-color: #f4f4f4;*/
+            color: #333;
+        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .profile-header {
+            display: flex;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .profile-photo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 0 solid;
+            margin-right: 20px;
+        }
+        .profile-info {
+            flex-grow: 1;
+        }
+        .profile-info h1 {
+            margin: 0;
+            font-size: 28px;
+            color: #0066b2;
+        }
+        .profile-info p {
+            margin: 5px 0;
+            font-size: 16px;
+            color: #555;
+        }
+        .details, .payments {
+            margin-top: 30px;
+        }
+        .section-title {
+            font-size: 22px;
+            color: #005A9C;
+            margin-bottom: 10px;
+        }
+        .details table, .payments table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .details th, .payments th, .details td, .payments td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .details th, .payments th {
+            background-color: #f7f7f7;
+            font-weight: 600;
+        }
+        .details td, .payments td {
+            background-color: #fafafa;
+        }
+        .payments td.success {
+            color: #006A4E;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <img
+                th:style="'border-radius:10px;'"
+                th:src="'data:image/png;base64,' + ${photo}"
+                alt="Student Photo"
+                class="profile-photo"
+        />
+        <div class="profile-info">
+            <h1 th:text="${studentFName} + ' ' + ${studentLName}"></h1>
+            <p th:text="${email}"></p>
+            <p th:text="'Student Code: ' + ${studentCode}"></p>
+        </div>
+    </div>
+
+    <!-- Profile Details -->
+    <div class="details">
+        <h2 class="section-title">Profile Details</h2>
+        <table>
+            <tr>
+                <th>Full Name</th>
+                <td th:text="${studentFName} + ' ' + ${studentLName}"></td>
+            </tr>
+            <tr>
+                <th>Email</th>
+                <td th:text="${email}"></td>
+            </tr>
+            <tr>
+                <th>Student Code</th>
+                <td th:text="${studentCode}"></td>
+            </tr>
+            <tr>
+                <th>Program ID</th>
+                <td th:text="${studentProgram}"></td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Payments Section -->
+    <div class="payments" th:if="${payments.size() > 0}" >
+        <h2 class="section-title">Payment Details</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>Type</th>
+                <th>Date</th>
+                <th>Register Date</th>
+                <th>Status</th>
+                <th>Amount</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="payment : ${payments}">
+                <td th:text="${payment.type}"></td>
+                <td th:text="${#dates.format(payment.date, 'dd-MM-yyyy')}"></td>
+                <td th:text="${#dates.format(payment.registerDate, 'dd-MM-yyyy hh:mm:ss')}"></td>
+                <td th:text="${payment.status}" th:classappend="'success'"></td>
+                <td th:text="${payment.amount} + ' MAD'"></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>TOTAL</td>
+                <td th:text="${total} + ' MAD'"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>
