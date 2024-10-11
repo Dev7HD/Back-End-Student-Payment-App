@@ -14,5 +14,4 @@ public class NewPaymentDTO {
     private double amount;
     private PaymentType paymentType;
     private Date date;
-    private Date registerDate;
 }

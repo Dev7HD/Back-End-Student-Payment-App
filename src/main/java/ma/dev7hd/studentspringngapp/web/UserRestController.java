@@ -113,7 +113,7 @@ public class UserRestController {
      * @return ResponseEntity<NewStudentDTO>
      */
     @PostMapping(value = "/student/new", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<InfosStudentDTO> saveStudent(@ModelAttribute NewStudentDTO studentDTO, @Parameter(description = "Photo to upload") @RequestPart(value = "photo")MultipartFile photo) throws IOException {
+    public ResponseEntity<InfosStudentDTO> saveStudent(NewStudentDTO studentDTO, @Parameter(description = "Photo to upload") @RequestPart(value = "photo")MultipartFile photo) throws IOException {
         return iUserService.saveStudent(studentDTO, photo);
     }
 
@@ -201,7 +201,7 @@ public class UserRestController {
      * @return ResponseEntity<String>
      */
     @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<String> registerStudent(@ModelAttribute NewPendingStudentDTO pendingStudentDTO, @Parameter(description = "Photo to upload") @RequestPart(value = "photo")MultipartFile photo) throws IOException {
+    public ResponseEntity<String> registerStudent(NewPendingStudentDTO pendingStudentDTO, @Parameter(description = "Photo to upload") @RequestPart(value = "photo")MultipartFile photo) throws IOException {
         return iUserService.registerStudent(pendingStudentDTO, photo);
     }
 
