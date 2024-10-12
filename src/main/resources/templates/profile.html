@@ -21,21 +21,24 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         .profile-header {
-            display: flex;
-            align-items: center;
+            /*display: flex;
+            align-items: center;*/
+            overflow: hidden;
+            padding-left: 10px;
             padding-bottom: 20px;
             border-bottom: 1px solid #e0e0e0;
         }
         .profile-photo {
+            float: left;
             width: 120px;
             height: 120px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 0 solid;
             margin-right: 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
         .profile-info {
-            flex-grow: 1;
+            /*flex-grow: 1;*/
+            overflow: hidden;
         }
         .profile-info h1 {
             margin: 0;
@@ -62,8 +65,16 @@
         .details th, .payments th, .details td, .payments td {
             padding: 12px 15px;
             text-align: left;
+        }
+
+        table tr:not(:last-child) {
             border-bottom: 1px solid #e0e0e0;
         }
+
+        .payments th{
+            border-bottom: 1px solid #e0e0e0;
+        }
+
         .details th, .payments th {
             background-color: #f7f7f7;
             font-weight: 600;
@@ -75,6 +86,13 @@
             color: #006A4E;
             font-weight: 600;
         }
+        table {
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-collapse: separate; /* This is important for preserving the shadow */
+            overflow: hidden; /* In case the content overflows */
+        }
+
     </style>
 </head>
 <body>
@@ -82,15 +100,15 @@
     <!-- Profile Header -->
     <div class="profile-header">
         <img
-                th:style="'border-radius:10px;'"
+                src="/static/img/photoo.jpg"
                 th:src="'data:image/png;base64,' + ${photo}"
                 alt="Student Photo"
                 class="profile-photo"
         />
         <div class="profile-info">
-            <h1 th:text="${studentFName} + ' ' + ${studentLName}"></h1>
-            <p th:text="${email}"></p>
-            <p th:text="'Student Code: ' + ${studentCode}"></p>
+            <h1 th:text="${studentFName} + ' ' + ${studentLName}">Oussama Bissi</h1>
+            <p th:text="${email}">Oussama@bissi.ma</p>
+            <p th:text="'Student Code: ' + ${studentCode}">STU2410225588</p>
         </div>
     </div>
 
@@ -99,20 +117,23 @@
         <h2 class="section-title">Profile Details</h2>
         <table>
             <tr>
-                <th>Full Name</th>
-                <td th:text="${studentFName} + ' ' + ${studentLName}"></td>
+                <th >Full Name</th>
+                <td
+                        th:text="${studentFName} + ' ' + ${studentLName}"
+                >Oussama Bissi</td>
             </tr>
             <tr>
                 <th>Email</th>
-                <td th:text="${email}"></td>
+                <td th:text="${email}">Oussama@bissi.ma</td>
             </tr>
             <tr>
                 <th>Student Code</th>
-                <td th:text="${studentCode}"></td>
+                <td th:text="${studentCode}">STU2410225588</td>
             </tr>
             <tr>
                 <th>Program ID</th>
-                <td th:text="${studentProgram}"></td>
+                <td th:text="${studentProgram}"
+                >SMA</td>
             </tr>
         </table>
     </div>
@@ -132,21 +153,26 @@
             </thead>
             <tbody>
             <tr th:each="payment : ${payments}">
-                <td th:text="${payment.type}"></td>
-                <td th:text="${#dates.format(payment.date, 'dd-MM-yyyy')}"></td>
-                <td th:text="${#dates.format(payment.registerDate, 'dd-MM-yyyy hh:mm:ss')}"></td>
-                <td th:text="${payment.status}" th:classappend="'success'"></td>
-                <td th:text="${payment.amount} + ' MAD'"></td>
+                <td th:text="${payment.type}">CASH</td>
+                <td th:text="${#dates.format(payment.date, 'dd-MM-yyyy')}">25-10-2024</td>
+                <td th:text="${#dates.format(payment.registerDate, 'dd-MM-yyyy hh:mm:ss')}">10-10-2024 12:11:14</td>
+                <td th:text="${payment.status}" class="success" th:classappend="'success'">VALIDATED</td>
+                <td th:text="${payment.amount} + ' MAD'">8500</td>
             </tr>
             <tr>
                 <td></td>
                 <td></td>
                 <td></td>
                 <td>TOTAL</td>
-                <td th:text="${total} + ' MAD'"></td>
+                <td
+                        th:text="${total} + ' MAD'"
+                >8500</td>
             </tr>
             </tbody>
         </table>
+    </div>
+    <div class="payments" th:if="${payments.size() == 0 || payments == null}">
+        <h3 class="section-title">You have not validated payment yet.</h3>
     </div>
 </div>
 </body>
